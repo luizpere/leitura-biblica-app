@@ -5,60 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>📖 Minha Leitura Bíblica</title>
   <style>
-    :root {
-      --bg: #0f172a; --card: rgba(30,41,59,0.7); --text: #e2e8f0;
-      --text-muted: #94a3b8; --primary: #10b981; --primary-hover: #059669;
-      --danger: #ef4444; --border: rgba(148,163,184,0.2);
-      --shadow: 0 4px 12px rgba(0,0,0,0.3); --radius: 12px;
-    }
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg: #f8fafc; --card: rgba(255,255,255,0.9);
-        --text: #1e293b; --text-muted: #64748b; --border: rgba(0,0,0,0.1);
-        --shadow: 0 4px 12px rgba(0,0,0,0.1);
-      }
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 16px; }
-    .container { max-width: 600px; margin: 0 auto; }
-    header { text-align: center; margin-bottom: 24px; }
-    h1 { font-size: 1.8rem; margin-bottom: 8px; background: linear-gradient(135deg, var(--primary), #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    #user-id { font-size: 0.8rem; color: var(--text-muted); background: var(--card); padding: 4px 8px; border-radius: 20px; display: inline-block; }
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
-    .stat-card { background: var(--card); padding: 12px; border-radius: var(--radius); text-align: center; border: 1px solid var(--border); }
-    .stat-value { font-size: 1.4rem; font-weight: bold; color: var(--primary); }
-    .stat-label { font-size: 0.75rem; color: var(--text-muted); }
-    .btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius); background: var(--primary); color: white; font-size: 1rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
-    #readings-list { margin-top: 20px; display: flex; flex-direction: column; gap: 12px; }
-    .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); }
-    .empty svg { width: 60px; height: 60px; margin-bottom: 12px; opacity: 0.5; }
-    .card { background: var(--card); padding: 16px; border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; transition: 0.3s; animation: slideIn 0.3s ease; }
-    .card.done { opacity: 0.6; border-color: var(--primary); }
-    .card.done .book-title { text-decoration: line-through; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .card-info h3 { font-size: 1.1rem; margin-bottom: 4px; }
-    .card-info p { color: var(--text-muted); font-size: 0.85rem; }
-    .card-actions { display: flex; gap: 8px; }
-    .icon-btn { width: 36px; height: 36px; border: none; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; background: rgba(255,255,255,0.1); color: var(--text); }
-    .icon-btn.check { background: var(--primary); color: white; }
-    .icon-btn.check.done { background: var(--text-muted); }
-    .icon-btn.delete { color: var(--danger); }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; }
-    .modal-overlay.open { opacity: 1; pointer-events: auto; }
-    .modal { background: var(--bg); width: 100%; max-width: 500px; padding: 24px; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: 0.3s; }
-    .modal-overlay.open .modal { transform: translateY(0); }
-    .modal h2 { margin-bottom: 16px; }
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; margin-bottom: 6px; font-size: 0.9rem; color: var(--text-muted); }
-    .form-group input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--text); font-size: 1rem; }
-    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-    .btn-secondary { background: var(--card); color: var(--text); }
-    #loading { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 200; }
-    .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #334155; color: white; padding: 10px 20px; border-radius: 30px; font-size: 0.9rem; opacity: 0; transition: 0.3s; z-index: 300; }
-    .toast.show { opacity: 1; bottom: 40px; }
+    :root { --bg:#0f172a; --card:rgba(30,41,59,0.7); --text:#e2e8f0; --text-muted:#94a3b8; --primary:#10b981; --primary-hover:#059669; --danger:#ef4444; --border:rgba(148,163,184,0.2); --shadow:0 4px 12px rgba(0,0,0,0.3); --radius:12px; }
+    @media (prefers-color-scheme: light) { :root { --bg:#f8fafc; --card:rgba(255,255,255,0.9); --text:#1e293b; --text-muted:#64748b; --border:rgba(0,0,0,0.1); --shadow:0 4px 12px rgba(0,0,0,0.1); } }
+    * { box-sizing:border-box; margin:0; padding:0; font-family:system-ui,-apple-system,sans-serif; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; padding:16px; }
+    .container { max-width:600px; margin:0 auto; }
+    header { text-align:center; margin-bottom:24px; }
+    h1 { font-size:1.8rem; margin-bottom:8px; background:linear-gradient(135deg,var(--primary),#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    #user-id { font-size:0.8rem; color:var(--text-muted); background:var(--card); padding:4px 8px; border-radius:20px; display:inline-block; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    .stat-card { background:var(--card); padding:12px; border-radius:var(--radius); text-align:center; border:1px solid var(--border); }
+    .stat-value { font-size:1.4rem; font-weight:bold; color:var(--primary); }
+    .stat-label { font-size:0.75rem; color:var(--text-muted); }
+    .btn { width:100%; padding:14px; border:none; border-radius:var(--radius); background:var(--primary); color:white; font-size:1rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .btn:hover { background:var(--primary-hover); transform:translateY(-2px); }
+    #readings-list { margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+    .empty { text-align:center; padding:40px 20px; color:var(--text-muted); }
+    .empty svg { width:60px; height:60px; margin-bottom:12px; opacity:0.5; }
+    .card { background:var(--card); padding:16px; border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center; transition:0.3s; animation:slideIn 0.3s ease; }
+    .card.done { opacity:0.6; border-color:var(--primary); }
+    .card.done .book-title { text-decoration:line-through; }
+    @keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .card-info h3 { font-size:1.1rem; margin-bottom:4px; }
+    .card-info p { color:var(--text-muted); font-size:0.85rem; }
+    .card-actions { display:flex; gap:8px; }
+    .icon-btn { width:36px; height:36px; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s; background:rgba(255,255,255,0.1); color:var(--text); }
+    .icon-btn.check { background:var(--primary); color:white; }
+    .icon-btn.check.done { background:var(--text-muted); }
+    .icon-btn.delete { color:var(--danger); }
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; z-index:100; }
+    .modal-overlay.open { opacity:1; pointer-events:auto; }
+    .modal { background:var(--bg); width:100%; max-width:500px; padding:24px; border-radius:20px 20px 0 0; transform:translateY(100%); transition:0.3s; }
+    .modal-overlay.open .modal { transform:translateY(0); }
+    .modal h2 { margin-bottom:16px; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; margin-bottom:6px; font-size:0.9rem; color:var(--text-muted); }
+    .form-group input { width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--card); color:var(--text); font-size:1rem; }
+    .modal-actions { display:flex; gap:10px; margin-top:20px; }
+    .btn-secondary { background:var(--card); color:var(--text); }
+    #loading { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:200; }
+    .spinner { width:40px; height:40px; border:4px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#334155; color:white; padding:10px 20px; border-radius:30px; font-size:0.9rem; opacity:0; transition:0.3s; z-index:300; }
+    .toast.show { opacity:1; bottom:40px; }
   </style>
 </head>
 <body>
@@ -72,9 +61,7 @@
       <div class="stat-card"><div class="stat-value" id="stat-books">0</div><div class="stat-label">Livros</div></div>
     </div>
     <button class="btn" onclick="openModal()">➕ Adicionar Leitura</button>
-    <div id="readings-list">
-      <div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><p>Nenhuma leitura registrada ainda.<br>Comece agora!</p></div>
-    </div>
+    <div id="readings-list"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><p>Nenhuma leitura registrada ainda.<br>Comece agora!</p></div></div>
   </div>
   <div class="modal-overlay" id="modal">
     <div class="modal">
@@ -89,28 +76,28 @@
   </div>
 
   <script type="module">
-    // ✅ IMPORTAÇÕES DO FIREBASE (NÃO DUPLIQUE NEM ADICIONE MAIS)
+    // ✅ IMPORTAÇÕES DO FIREBASE (APENAS UMA VEZ)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+    // 🔑 COLE AQUI SUAS CHAVES REAIS DO FIREBASE (substitua TODO o bloco abaixo)
+    const firebaseConfig = {
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
   apiKey: "AIzaSyA3dEalK97ToeFQ0Mk8TEJZjyvshiBZ7e8",
+
   authDomain: "leitura-biblica-dramatizadaapp.firebaseapp.com",
+
   projectId: "leitura-biblica-dramatizadaapp",
+
   storageBucket: "leitura-biblica-dramatizadaapp.firebasestorage.app",
+
   messagingSenderId: "945032968154",
+
   appId: "1:945032968154:web:beae417cb27a87547bf2e3"
+
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -174,7 +161,7 @@ const app = initializeApp(firebaseConfig);
       await addDoc(collection(db, `users/${currentUserId}/readings`), {
         book: document.getElementById('input-book').value.trim(),
         chapters: document.getElementById('input-chapters').value.trim(),
-        date: document.getElementById('input-date').value,
+        date: document.getElementById('input-date').value,  
         completed: false, createdAt: serverTimestamp()
       });
       closeModal(); e.target.reset();
