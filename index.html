@@ -112,26 +112,32 @@
     </div>
   </div>
 <script type="module">
-  // ✅ IMPORTS DEVEM FICAR NO TOPO, FORA DE QUALQUER BLOCO
+<script type="module">
+  // ✅ IMPORTS NO TOPO (obrigatório)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
   import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // Esconde loading em 100ms (evita loop visual)
-  setTimeout(() => {
-    const l = document.getElementById('loading');
-    if (l) l.style.display = 'none';
-  }, 100);
+  // Esconde loading rápido
+  setTimeout(() => { const l = document.getElementById('loading'); if(l) l.style.display = 'none'; }, 150);
 
-  // 🔑 FIREBASE CONFIG
-  const firebaseConfig = {
-    apiKey: "AIzaSyA3dEalK97ToeFQ0Mk8TEJZjyvshiBZ7e8",
-    authDomain: "leitura-biblica-dramatizadaapp.firebaseapp.com",
-    projectId: "leitura-biblica-dramatizadaapp",
-    storageBucket: "leitura-biblica-dramatizadaapp.firebasestorage.app",
-    messagingSenderId: "945032968154",
-    appId: "1:945032968154:web:beae417cb27a87547bf2e3"
-  };
+  // 🔑 FIREBASE
+ const firebaseConfig = {
+
+  apiKey: "AIzaSyA3dEalK97ToeFQ0Mk8TEJZjyvshiBZ7e8",
+
+  authDomain: "leitura-biblica-dramatizadaapp.firebaseapp.com",
+
+  projectId: "leitura-biblica-dramatizadaapp",
+
+  storageBucket: "leitura-biblica-dramatizadaapp.firebasestorage.app",
+
+  messagingSenderId: "945032968154",
+
+  appId: "1:945032968154:web:beae417cb27a87547bf2e3"
+
+};
+
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
@@ -142,7 +148,7 @@
   let freeReadings = [];
   let currentMonth = "JANEIRO";
 
-  // 📖 COLE SEU PLAN_DATA EXATAMENTE AQUI (entre as chaves)
+  // 📖 COLE SEU PLAN_DATA AQUI (apenas o conteúdo entre { e })
   const PLAN_DATA = {
     "JANEIRO": [
     { dia: 1, livro: "SALMOS", caps: "67 - 69" },
@@ -533,16 +539,15 @@
     { dia: 30, livro: "SALMOS", caps: "61 - 63" },
     { dia: 31, livro: "SALMOS", caps: "64 - 66" }
   ]
-};
+}; 
 
-  // Inicializa app
   function initApp() {
     setupMonthSelector();
     renderPlan();
     loadFreeReadings();
   }
 
-  // 🔐 Auth
+  // 🔐 AUTH
   onAuthStateChanged(auth, (user) => {
     if (user) {
       currentUserId = user.uid;
@@ -551,7 +556,7 @@
     } else { signInAnonymously(auth); }
   });
 
-  // 🗓️ Seletor
+  // 🗓️ SELETOR
   function setupMonthSelector() {
     const sel = document.getElementById('month-selector');
     sel.innerHTML = '';
@@ -561,13 +566,10 @@
       sel.appendChild(opt);
     });
     sel.value = currentMonth;
-    sel.addEventListener('change', (e) => { 
-      currentMonth = e.target.value; 
-      renderPlan(); 
-    });
+    sel.addEventListener('change', (e) => { currentMonth = e.target.value; renderPlan(); });
   }
 
-  // 💾 Progresso
+  // 💾 PROGRESSO
   function loadPlanProgress() {
     onSnapshot(doc(db, `users/${currentUserId}/planProgress`), (snap) => {
       planProgress = snap.exists() ? snap.data() : {};
@@ -575,17 +577,15 @@
     });
   }
 
-  // 🎨 Renderiza Plano
+  // 🎨 RENDER
   function renderPlan() {
     const container = document.getElementById('plan-container');
     const data = PLAN_DATA[currentMonth] || [];
-    let completed = 0;
     const fragment = document.createDocumentFragment();
 
     data.forEach(day => {
       const key = `${currentMonth}-${day.dia}`;
       const done = !!planProgress[key];
-      if (done) completed++;
       const el = document.createElement('div');
       el.className = `plan-day ${done ? 'done' : ''}`;
       el.dataset.key = key;
@@ -601,7 +601,7 @@
 
     container.innerHTML = '';
     container.appendChild(fragment);
-    updateProgressBar(data.length, completed);
+    updateProgressBar(data.length, data.filter(d => planProgress[`${currentMonth}-${d.dia}`]).length);
   }
 
   function updateCheckmarks() {
@@ -614,8 +614,7 @@
       btn.textContent = done ? '✓' : '';
     });
     const data = PLAN_DATA[currentMonth] || [];
-    const completed = data.filter(d => planProgress[`${currentMonth}-${d.dia}`]).length;
-    updateProgressBar(data.length, completed);
+    updateProgressBar(data.length, data.filter(d => planProgress[`${currentMonth}-${d.dia}`]).length);
   }
 
   function updateProgressBar(total, completed) {
@@ -625,15 +624,26 @@
     document.getElementById('month-bar').style.width = `${pct}%`;
   }
 
+  // ✅ FUNÇÃO CORRIGIDA PARA MARCAR
   async function togglePlanDay(key) {
+    if (!currentUserId) { showToast('⏳ Conectando ao Firebase...'); return; }
+    
     const newVal = !planProgress[key];
     planProgress[key] = newVal;
-    await setDoc(doc(db, `users/${currentUserId}/planProgress`), { [key]: newVal }, { merge: true });
-    updateCheckmarks();
-    showToast(newVal ? '✅ Marcado!' : '↩️ Desmarcado');
+    updateCheckmarks(); // Atualiza visual IMEDIATAMENTE
+
+    try {
+      await setDoc(doc(db, `users/${currentUserId}/planProgress`), { [key]: newVal }, { merge: true });
+      showToast(newVal ? '✅ Marcado!' : '↩️ Desmarcado');
+    } catch (error) {
+      console.error("Erro Firestore:", error);
+      showToast('❌ Erro ao salvar. Verifique regras do Firebase.');
+      planProgress[key] = !newVal; // Reverte se falhar
+      updateCheckmarks();
+    }
   }
 
-  // 📖 Leituras Livres
+  // 📖 LEITURAS LIVRES
   function loadFreeReadings() {
     if (!currentUserId) return;
     const q = query(collection(db, `users/${currentUserId}/readings`), orderBy('date', 'desc'));
@@ -675,7 +685,7 @@
     showToast('📖 Leitura registrada!');
   };
 
-  // 🧩 Utilitários
+  // 🧩 UTILITÁRIOS
   function formatDate(d) { if(!d) return '-'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
   
   window.switchTab = (tab) => {
@@ -692,6 +702,5 @@
   window.showToast = (msg) => { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); };
   document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
 
-  // 🚀 Start
   initApp();
 </script>
