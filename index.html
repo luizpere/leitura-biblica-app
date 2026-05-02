@@ -10,115 +10,78 @@
     * { box-sizing:border-box; margin:0; padding:0; font-family:system-ui,-apple-system,sans-serif; }
     body { background:var(--bg); color:var(--text); min-height:100vh; padding:16px; }
     .container { max-width:600px; margin:0 auto; }
-    header { text-align:center; margin-bottom:20px; }
-    h1 { font-size:1.6rem; margin-bottom:6px; background:linear-gradient(135deg,var(--primary),#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    #user-id { font-size:0.75rem; color:var(--text-muted); background:var(--card); padding:3px 8px; border-radius:20px; display:inline-block; }
-    
-    /* Abas */
-    .tabs { display:flex; gap:8px; margin-bottom:16px; }
-    .tab-btn { flex:1; padding:10px; border:1px solid var(--border); border-radius:var(--radius); background:transparent; color:var(--text-muted); cursor:pointer; font-weight:600; transition:0.2s; }
-    .tab-btn.active { background:var(--primary); color:white; border-color:var(--primary); }
-    
-    /* Progresso */
-    .progress-box { background:var(--card); padding:12px; border-radius:var(--radius); margin-bottom:16px; border:1px solid var(--border); }
-    .progress-bar { height:8px; background:var(--border); border-radius:4px; overflow:hidden; margin-top:6px; }
-    .progress-fill { height:100%; background:var(--primary); transition:width 0.4s ease; }
-    .progress-text { display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); }
-
-    /* Plano Oficial */
-    #month-selector { width:100%; padding:10px; margin-bottom:12px; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:8px; font-size:1rem; }
-    .plan-list { display:flex; flex-direction:column; gap:8px; max-height:60vh; overflow-y:auto; }
-    .plan-day { background:var(--card); padding:10px 14px; border-radius:8px; border:1px solid var(--border); display:flex; align-items:center; gap:12px; }
-    .plan-day.done { opacity:0.6; border-color:var(--primary); }
-    .plan-day.done .day-text { text-decoration:line-through; }
-    .day-check { width:24px; height:24px; border-radius:50%; border:2px solid var(--border); background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s; }
-    .day-check.checked { background:var(--primary); border-color:var(--primary); color:white; }
-    .day-text { flex:1; }
-    .day-label { font-size:0.75rem; color:var(--text-muted); }
-
-    /* Leitura Livre */
-    .btn { width:100%; padding:12px; border:none; border-radius:var(--radius); background:var(--primary); color:white; font-size:1rem; font-weight:600; cursor:pointer; margin-bottom:16px; }
-    .btn:hover { background:var(--primary-hover); }
-    .readings-list { display:flex; flex-direction:column; gap:10px; }
-    .free-card { background:var(--card); padding:12px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
-    .free-info h4 { font-size:1rem; margin-bottom:2px; }
-    .free-info p { font-size:0.8rem; color:var(--text-muted); }
-    .icon-btn { width:30px; height:30px; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1); color:var(--text); transition:0.2s; }
-    .icon-btn.delete:hover { background:var(--danger); color:white; }
-
-    /* Modal */
+    header { text-align:center; margin-bottom:24px; }
+    h1 { font-size:1.8rem; margin-bottom:8px; background:linear-gradient(135deg,var(--primary),#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    #user-id { font-size:0.8rem; color:var(--text-muted); background:var(--card); padding:4px 8px; border-radius:20px; display:inline-block; }
+    .stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    .stat-card { background:var(--card); padding:12px; border-radius:var(--radius); text-align:center; border:1px solid var(--border); }
+    .stat-value { font-size:1.4rem; font-weight:bold; color:var(--primary); }
+    .stat-label { font-size:0.75rem; color:var(--text-muted); }
+    .btn { width:100%; padding:14px; border:none; border-radius:var(--radius); background:var(--primary); color:white; font-size:1rem; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; }
+    .btn:hover { background:var(--primary-hover); transform:translateY(-2px); }
+    #readings-list { margin-top:20px; display:flex; flex-direction:column; gap:12px; }
+    .empty { text-align:center; padding:40px 20px; color:var(--text-muted); }
+    .empty svg { width:60px; height:60px; margin-bottom:12px; opacity:0.5; }
+    .card { background:var(--card); padding:16px; border-radius:var(--radius); border:1px solid var(--border); box-shadow:var(--shadow); display:grid; grid-template-columns:1fr auto; gap:12px; align-items:center; transition:0.3s; animation:slideIn 0.3s ease; }
+    .card.done { opacity:0.6; border-color:var(--primary); }
+    .card.done .book-title { text-decoration:line-through; }
+    @keyframes slideIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+    .card-info h3 { font-size:1.1rem; margin-bottom:4px; }
+    .card-info p { color:var(--text-muted); font-size:0.85rem; }
+    .card-actions { display:flex; gap:8px; }
+    .icon-btn { width:36px; height:36px; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s; background:rgba(255,255,255,0.1); color:var(--text); }
+    .icon-btn.check { background:var(--primary); color:white; }
+    .icon-btn.check.done { background:var(--text-muted); }
+    .icon-btn.delete { color:var(--danger); }
     .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; z-index:100; }
     .modal-overlay.open { opacity:1; pointer-events:auto; }
-    .modal { background:var(--bg); width:100%; max-width:500px; padding:20px; border-radius:20px 20px 0 0; transform:translateY(100%); transition:0.3s; }
+    .modal { background:var(--bg); width:100%; max-width:500px; padding:24px; border-radius:20px 20px 0 0; transform:translateY(100%); transition:0.3s; }
     .modal-overlay.open .modal { transform:translateY(0); }
-    .form-group { margin-bottom:12px; }
-    .form-group label { display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-muted); }
-    .form-group input { width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--card); color:var(--text); }
-    .modal-actions { display:flex; gap:8px; margin-top:12px; }
-    .btn-sec { background:var(--card); color:var(--text); }
-
+    .modal h2 { margin-bottom:16px; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; margin-bottom:6px; font-size:0.9rem; color:var(--text-muted); }
+    .form-group input { width:100%; padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--card); color:var(--text); font-size:1rem; }
+    .modal-actions { display:flex; gap:10px; margin-top:20px; }
+    .btn-secondary { background:var(--card); color:var(--text); }
     #loading { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:200; }
     .spinner { width:40px; height:40px; border:4px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
-    .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#334155; color:white; padding:10px 16px; border-radius:30px; font-size:0.85rem; opacity:0; transition:0.3s; z-index:300; }
+    .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#334155; color:white; padding:10px 20px; border-radius:30px; font-size:0.9rem; opacity:0; transition:0.3s; z-index:300; }
     .toast.show { opacity:1; bottom:40px; }
   </style>
 </head>
 <body>
   <div id="loading"><div class="spinner"></div></div>
   <div class="toast" id="toast"></div>
-
   <div class="container">
-    <header>
-      <h1>📖 Minha Leitura Bíblica</h1>
-      <div id="user-id">Conectando...</div>
-    </header>
-
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('plano')">📅 Plano Oficial</button>
-      <button class="tab-btn" onclick="switchTab('livre')">📖 Leitura Livre</button>
+    <header><h1>📖 Minha Leitura Bíblica</h1><div id="user-id">Carregando...</div></header>
+    <div class="stats">
+      <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Registros</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-done">0</div><div class="stat-label">Concluídos</div></div>
+      <div class="stat-card"><div class="stat-value" id="stat-books">0</div><div class="stat-label">Livros</div></div>
     </div>
-
-    <!-- ABA PLANO -->
-    <div id="tab-plano">
-      <div class="progress-box">
-        <div class="progress-text"><span id="month-label">Janeiro</span><span id="month-pct">0%</span></div>
-        <div class="progress-bar"><div class="progress-fill" id="month-bar"></div></div>
-      </div>
-      <select id="month-selector"></select>
-      <div class="plan-list" id="plan-container">
-        <p style="text-align:center;color:var(--text-muted);">Carregando plano...</p>
-      </div>
-    </div>
-
-    <!-- ABA LIVRE -->
-    <div id="tab-livre" style="display:none;">
-      <button class="btn" onclick="openFreeModal()">➕ Registrar Leitura</button>
-      <div class="readings-list" id="free-container">
-        <p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p>
-      </div>
-    </div>
+    <button class="btn" onclick="openModal()">➕ Adicionar Leitura</button>
+    <div id="readings-list"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><p>Nenhuma leitura registrada ainda.<br>Comece agora!</p></div></div>
   </div>
-
   <div class="modal-overlay" id="modal">
     <div class="modal">
-      <h3>📖 Nova Leitura</h3>
-      <form id="free-form">
-        <div class="form-group"><label>Livro</label><input type="text" id="f-book" required placeholder="Ex: Salmos, João"></div>
-        <div class="form-group"><label>Capítulos</label><input type="text" id="f-caps" required placeholder="Ex: 23, 1-5"></div>
-        <div class="form-group"><label>Data</label><input type="date" id="f-date" required></div>
-        <div class="modal-actions"><button type="button" class="btn btn-sec" onclick="closeModal()">Cancelar</button><button type="submit" class="btn">Salvar</button></div>
+      <h2>📖 Registrar Leitura</h2>
+      <form id="read-form">
+        <div class="form-group"><label>Livro</label><input type="text" id="input-book" placeholder="Ex: Gênesis, Salmos, Mateus..." required></div>
+        <div class="form-group"><label>Capítulos</label><input type="text" id="input-chapters" placeholder="Ex: 1-5, 23, 10-12" required></div>
+        <div class="form-group"><label>Data</label><input type="date" id="input-date" required></div>
+        <div class="modal-actions"><button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button type="submit" class="btn">Salvar</button></div>
       </form>
     </div>
   </div>
 
   <script type="module">
-    // 🔥 1. IMPORTAÇÕES FIREBASE
+    // ✅ IMPORTAÇÕES DO FIREBASE (APENAS UMA VEZ)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 🔑 2. COLE SUAS CHAVES AQUI (substitua os valores entre aspas)
+    // 🔑 COLE AQUI SUAS CHAVES REAIS DO FIREBASE (substitua TODO o bloco abaixo)
     const firebaseConfig = {
 
   apiKey: "AIzaSyA3dEalK97ToeFQ0Mk8TEJZjyvshiBZ7e8",
@@ -136,184 +99,82 @@
 };
 
 
-
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-
-    // 📖 3. DADOS DO PLANO (Aqui entra sua planilha completa)
-function gerarPlanData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const abas = ss.getSheets();
-  let codigo = "const PLAN_DATA = {\n";
-
-  abas.forEach(aba => {
-    const nome = aba.getName().trim();
-    const dados = aba.getDataRange().getValues();
-    // Pula a primeira linha (cabeçalho) e ignora linhas vazias
-    const linhas = dados.slice(1).filter(l => l[0] !== "" && l[0] !== undefined);
-
-    if (linhas.length === 0) return;
-
-    codigo += `  "${nome}": [\n`;
-    linhas.forEach(l => {
-      // ⚠️ Ajuste os índices abaixo se suas colunas estiverem em outra ordem:
-      // 0 = Dia | 1 = Livro | 2 = Capítulos
-      const dia = l[0];
-      const livro = String(l[1]).trim();
-      const caps = String(l[2]).trim();
-      codigo += `    { dia: ${dia}, livro: "${livro}", caps: "${caps}" },\n`;
-    });
-    // Remove a última vírgula e fecha o array
-    codigo = codigo.slice(0, -2) + "\n  ],\n";
-  });
-
-  // Fecha o objeto principal
-  codigo = codigo.slice(0, -2) + "\n};";
-
-  // Mostra em janela fácil de copiar
-  const html = HtmlService.createHtmlOutput(
-    `<textarea style="width:100%;height:500px;font-family:monospace;font-size:13px;">${codigo}</textarea>
-     <br><br>
-     <button onclick="google.script.host.close()" style="padding:8px 16px;background:#10b981;color:white;border:none;border-radius:6px;cursor:pointer;">✅ Fechar</button>`
-  ).setWidth(600).setHeight(400);
-  
-  SpreadsheetApp.getUi().showModalDialog(html, "📖 Copie o PLAN_DATA completo");
-}
-
     let currentUserId = null;
-    let planProgress = {};
-    let freeReadings = [];
-    let currentMonth = "Janeiro";
+    let readingsData = [];
 
-    // 🔐 4. AUTENTICAÇÃO
     onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUserId = user.uid;
         document.getElementById('user-id').textContent = `ID: ${user.uid.substring(0, 6)}...`;
         document.getElementById('loading').style.display = 'none';
-        initApp();
+        loadReadings();
       } else { signInAnonymously(auth); }
     });
 
-    function initApp() {
-      setupMonthSelector();
-      loadPlanProgress();
-      loadFreeReadings();
-      renderPlan();
-    }
-
-    // 🗓️ SELETOR DE MESES
-    function setupMonthSelector() {
-      const sel = document.getElementById('month-selector');
-      Object.keys(PLAN_DATA).forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m; opt.textContent = m;
-        sel.appendChild(opt);
-      });
-      sel.addEventListener('change', (e) => { currentMonth = e.target.value; renderPlan(); });
-    }
-
-    // 💾 CARREGAR PROGRESSO DO PLANO
-    function loadPlanProgress() {
-      onSnapshot(doc(db, `users/${currentUserId}/planProgress`), (snap) => {
-        planProgress = snap.exists() ? snap.data() : {};
-        renderPlan();
-      });
-    }
-
-    // 🎨 RENDERIZAR PLANO
-    function renderPlan() {
-      const container = document.getElementById('plan-container');
-      const data = PLAN_DATA[currentMonth] || [];
-      let completed = 0;
-
-      container.innerHTML = data.map(day => {
-        const key = `${currentMonth}-${day.dia}`;
-        const done = !!planProgress[key];
-        if (done) completed++;
-        return `
-          <div class="plan-day ${done?'done':''}">
-            <button class="day-check ${done?'checked':''}" onclick="togglePlanDay('${key}')">${done?'✓':''}</button>
-            <div class="day-text">
-              <div class="day-label">Dia ${day.dia}</div>
-              <div class="day-content">${day.livro} • Cap. ${day.caps}</div>
-            </div>
-          </div>`;
-      }).join('');
-
-      // Atualizar barra de progresso
-      const pct = data.length ? Math.round((completed / data.length) * 100) : 0;
-      document.getElementById('month-label').textContent = currentMonth;
-      document.getElementById('month-pct').textContent = `${pct}%`;
-      document.getElementById('month-bar').style.width = `${pct}%`;
-    }
-
-    // ✅ MARCAR/DESMARCAR DIA
-    window.togglePlanDay = async (key) => {
-      const newVal = !planProgress[key];
-      planProgress[key] = newVal;
-      await setDoc(doc(db, `users/${currentUserId}/planProgress`), { [key]: newVal }, { merge: true });
-      showToast(newVal ? '✅ Marcado como lido!' : '↩️ Desmarcado');
-    };
-
-    // 📖 LEITURAS LIVRES
-    function loadFreeReadings() {
+    function loadReadings() {
       const q = query(collection(db, `users/${currentUserId}/readings`), orderBy('date', 'desc'));
-      onSnapshot(q, (snap) => {
-        freeReadings = snap.docs.map(d => ({id:d.id, ...d.data()}));
-        renderFreeReadings();
+      onSnapshot(q, (snapshot) => {
+        readingsData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderReadings(); updateStats();
       });
     }
 
-    function renderFreeReadings() {
-      const container = document.getElementById('free-container');
-      if (freeReadings.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p>';
+    function renderReadings() {
+      const list = document.getElementById('readings-list');
+      if (readingsData.length === 0) {
+        list.innerHTML = `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg><p>Nenhuma leitura registrada ainda.<br>Comece agora!</p></div>`;
         return;
       }
-      container.innerHTML = freeReadings.map(r => `
-        <div class="free-card">
-          <div class="free-info"><h4>${r.book}</h4><p>📖 Cap. ${r.chapters} | 📅 ${formatDate(r.date)}</p></div>
-          <button class="icon-btn delete" onclick="deleteFree('${r.id}')">🗑️</button>
+      list.innerHTML = readingsData.map(r => `
+        <div class="card ${r.completed ? 'done' : ''}">
+          <div class="card-info"><h3 class="book-title">${r.book}</h3><p>📖 Cap. ${r.chapters} | 📅 ${formatDate(r.date)}</p></div>
+          <div class="card-actions">
+            <button class="icon-btn check ${r.completed ? 'done' : ''}" onclick="toggleDone('${r.id}', ${!r.completed})">${r.completed ? '✓' : '○'}</button>
+            <button class="icon-btn delete" onclick="deleteReading('${r.id}')">🗑️</button>
+          </div>
         </div>`).join('');
     }
 
-    window.deleteFree = async (id) => {
+    function updateStats() {
+      document.getElementById('stat-total').textContent = readingsData.length;
+      document.getElementById('stat-done').textContent = readingsData.filter(r => r.completed).length;
+      document.getElementById('stat-books').textContent = new Set(readingsData.map(r => r.book.toLowerCase())).size;
+    }
+
+    window.toggleDone = async (id, status) => {
+      await updateDoc(doc(db, `users/${currentUserId}/readings/${id}`), { completed: status });
+      showToast(status ? '✅ Marcado como lido!' : '↩️ Marcado como pendente');
+    };
+
+    window.deleteReading = async (id) => {
       if(confirm('Excluir esta leitura?')) {
         await deleteDoc(doc(db, `users/${currentUserId}/readings/${id}`));
-        showToast('🗑️ Removida');
+        showToast('🗑️ Leitura removida');
       }
     };
 
-    // 📝 FORMULÁRIO LIVRE
-    document.getElementById('free-form').onsubmit = async (e) => {
+    document.getElementById('read-form').onsubmit = async (e) => {
       e.preventDefault();
       await addDoc(collection(db, `users/${currentUserId}/readings`), {
-        book: document.getElementById('f-book').value.trim(),
-        chapters: document.getElementById('f-caps').value.trim(),
-        date: document.getElementById('f-date').value,
-        createdAt: serverTimestamp()
+        book: document.getElementById('input-book').value.trim(),
+        chapters: document.getElementById('input-chapters').value.trim(),
+        date: document.getElementById('input-date').value,  
+        completed: false, createdAt: serverTimestamp()
       });
       closeModal(); e.target.reset();
+      document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
       showToast('📖 Leitura registrada!');
     };
 
-    // 🧩 UTILITÁRIOS
-    function formatDate(d) { if(!d) return '-'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
-    window.switchTab = (tab) => {
-      document.getElementById('tab-plano').style.display = tab==='plano'?'block':'none';
-      document.getElementById('tab-livre').style.display = tab==='livre'?'block':'none';
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(tab==='plano'?'Plano':'Livre')));
-    };
-    window.openFreeModal = () => {
-      document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-      document.getElementById('modal').classList.add('open');
-    };
+    function formatDate(d) { if(!d) return '-'; const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`; }
+    window.openModal = () => { document.getElementById('input-date').value = new Date().toISOString().split('T')[0]; document.getElementById('modal').classList.add('open'); };
     window.closeModal = () => document.getElementById('modal').classList.remove('open');
-    document.getElementById('modal').onclick = (e) => { if(e.target===e.currentTarget) closeModal(); };
-    window.showToast = (msg) => { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); };
-    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('modal').onclick = (e) => { if(e.target === e.currentTarget) closeModal(); };
+    window.showToast = (msg) => { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); };
+    document.getElementById('input-date').value = new Date().toISOString().split('T')[0];
   </script>
 </body>
 </html>
