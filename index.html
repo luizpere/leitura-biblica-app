@@ -103,16 +103,13 @@
   <div class="modal-overlay" id="modal">
     <div class="modal">
       <h3>📖 Nova Leitura</h3>
-      <form id="free-form">
-       <div class="form-group">
-  <label>Quantidade de Capítulos</label>
-  <input type="number" id="f-caps" required min="1" placeholder="Ex: 1, 2, 3...">
-  <small style="color:var(--text-muted); font-size:0.75rem; display:block; margin-top:4px;">💡 Incentivamos a leitura de capítulos inteiros conforme sua disponibilidade.</small>
-</div>
-        <div class="form-group"><label>Capítulos</label><input type="text" id="f-caps" required placeholder="Ex: 23, 1-5"></div>
-        <div class="form-group"><label>Data</label><input type="date" id="f-date" required></div>
-        <div class="modal-actions"><button type="button" class="btn btn-sec" onclick="closeModal()">Cancelar</button><button type="submit" class="btn">Salvar</button></div>
-      </form>
+     <form id="free-form">
+  <div class="form-group"><label>Livro</label><input type="text" id="f-book" required placeholder="Ex: Gênesis, Mateus, Salmos..."></div>
+  <div class="form-group"><label>Capítulo</label><input type="number" id="f-chapter" required min="1" placeholder="Ex: 1, 24, 119..."></div>
+  <div class="form-group"><label>Versículos (opcional)</label><input type="text" id="f-verses" placeholder="Ex: 1-14, 5, ou deixe em branco"></div>
+  <div class="form-group"><label>Data</label><input type="date" id="f-date" required></div>
+  <div class="modal-actions"><button type="button" class="btn btn-sec" onclick="closeModal()">Cancelar</button><button type="submit" class="btn">Salvar</button></div>
+</form>
     </div>
   </div>
 <script type="module">
@@ -669,10 +666,13 @@ onAuthStateChanged(auth, async (user) => {
       return;
     }
     container.innerHTML = freeReadings.map(r => `
-      <div class="free-card">
-        <div class="free-info"><h4>${r.book}</h4><p>📖 ${r.chapters} capítulo(s) lido(s) | 📅 ${formatDate(r.date)}</p></div>
-        <button class="icon-btn delete" onclick="deleteFree('${r.id}')">🗑️</button>
-      </div>`).join('');
+  <div class="free-card">
+    <div class="free-info">
+      <h4>${r.book}</h4>
+      <p>📖 Cap. ${r.chapter ?? r.chapters} ${r.verses ? `• Vs. ${r.verses}` : ''} | 📅 ${formatDate(r.date)}</p>
+    </div>
+    <button class="icon-btn delete" onclick="deleteFree('${r.id}')">🗑️</button>
+  </div>`).join('');
   }
 
   window.deleteFree = async (id) => {
@@ -684,12 +684,13 @@ onAuthStateChanged(auth, async (user) => {
 
   document.getElementById('free-form').onsubmit = async (e) => {
     e.preventDefault();
-    await addDoc(collection(db, `users/${currentUserId}/readings`), {
-      book: document.getElementById('f-book').value.trim(),
-      chapters: document.getElementById('f-caps').value.trim(),
-      date: document.getElementById('f-date').value,
-      createdAt: serverTimestamp()
-    });
+await addDoc(collection(db, `users/${currentUserId}/readings`), {
+  book: document.getElementById('f-book').value.trim(),
+  chapter: parseInt(document.getElementById('f-chapter').value),
+  verses: document.getElementById('f-verses').value.trim() || "",
+  date: document.getElementById('f-date').value,
+  createdAt: serverTimestamp()
+});
     closeModal(); e.target.reset();
     showToast('📖 Leitura registrada!');
   };
