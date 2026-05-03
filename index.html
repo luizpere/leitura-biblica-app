@@ -577,12 +577,12 @@ onAuthStateChanged(auth, async (user) => {
   }
 
   // 💾 PROGRESSO
-  function loadPlanProgress() {
-    onSnapshot(doc(db, `users/${currentUserId}/planProgress`), (snap) => {
-      planProgress = snap.exists() ? snap.data() : {};
-      updateCheckmarks();
-    });
-  }
+ function loadPlanProgress() {
+  onSnapshot(doc(db, "users", currentUserId, "planProgress", "data"), (snap) => {
+    planProgress = snap.exists() ? snap.data() : {};
+    updateCheckmarks();
+  });
+}
 
   // 🎨 RENDER
   function renderPlan() {
@@ -633,22 +633,20 @@ onAuthStateChanged(auth, async (user) => {
 
   // ✅ FUNÇÃO CORRIGIDA PARA MARCAR
   async function togglePlanDay(key) {
-    if (!currentUserId) { showToast('⏳ Conectando ao Firebase...'); return; }
-    
-    const newVal = !planProgress[key];
-    planProgress[key] = newVal;
-    updateCheckmarks(); // Atualiza visual IMEDIATAMENTE
-
-    try {
-      await setDoc(doc(db, `users/${currentUserId}/planProgress`), { [key]: newVal }, { merge: true });
-      showToast(newVal ? '✅ Marcado!' : '↩️ Desmarcado');
-    } catch (error) {
-      console.error("Erro Firestore:", error);
-      showToast('❌ Erro ao salvar. Verifique regras do Firebase.');
-      planProgress[key] = !newVal; // Reverte se falhar
-      updateCheckmarks();
-    }
+  if (!currentUserId) { showToast('⏳ Conectando...'); return; }
+  const newVal = !planProgress[key];
+  planProgress[key] = newVal;
+  updateCheckmarks();
+  try {
+    await setDoc(doc(db, "users", currentUserId, "planProgress", "data"), { [key]: newVal }, { merge: true });
+    showToast(newVal ? '✅ Marcado!' : '↩️ Desmarcado');
+  } catch (e) {
+    console.error(e);
+    showToast('❌ Erro ao salvar.');
+    planProgress[key] = !newVal;
+    updateCheckmarks();
   }
+}
 
   // 📖 LEITURAS LIVRES
   function loadFreeReadings() {
