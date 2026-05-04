@@ -120,12 +120,13 @@
     </div>
   </div>
 <script type="module">
-  // ✅ IMPORTS NO TOPO (obrigatório)
+  // ✅ IMPORTS DEVEM SER AS PRIMEIRAS LINHAS (nada entre eles!)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, serverTimestamp, query, orderBy }
-console.log("✅ Script carregado com sucesso!");
- from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  // 👉 Só DEPOIS de todos os imports você pode adicionar logs ou código
+  console.log("✅ Script carregado com sucesso!");
 
   // Esconde loading rápido
   setTimeout(() => { const l = document.getElementById('loading'); if(l) l.style.display = 'none'; }, 150);
