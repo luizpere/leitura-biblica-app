@@ -724,26 +724,20 @@ onAuthStateChanged(auth, async (user) => {
 
   // 📖 LEITURAS LIVRES
 function loadFreeReadings() {
-  if (!currentUserId) return;
-  const q = query(collection(db, `users/${currentUserId}/readings`), orderBy('date','desc'));
-  onSnapshot(q, (snap) => {
-  function loadFreeReadings() {
   if (!currentUserId) {
-    console.log("⏳ currentUserId ainda não definido");
+    console.log("Aguardando login...");
     return;
   }
-  console.log("🔍 Carregando leituras para user:", currentUserId);
+  console.log("Carregando leituras para:", currentUserId);
   
-  const q = query(collection(db, `users/${currentUserId}/readings`), orderBy('date','desc'));
+  const q = query(collection(db, "users/" + currentUserId + "/readings"), orderBy("date", "desc"));
   onSnapshot(q, (snap) => {
-    console.log("📦 Docs retornados:", snap.docs.length);
-    snap.docs.forEach((d, i) => console.log(`📄 Doc ${i}:`, d.data()));
-    
-    freeReadings = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    console.log("Documentos retornados:", snap.docs.length);
+    freeReadings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     renderFreeReadings();
     renderFreeSummary();
-  }, (error) => {
-    console.error("❌ Erro ao ler leituras:", error.code, error.message);
+  }, (err) => {
+    console.error("Erro ao buscar:", err.code, err.message);
   });
 }
     const container = document.getElementById('free-container');
