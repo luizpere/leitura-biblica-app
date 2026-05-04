@@ -816,21 +816,28 @@ if ('serviceWorker' in navigator) {
   });
 }
   initApp();
-
- 1. Modal de Leitura (JÁ EXISTENTE - mantenha seu conteúdo interno intacto) 
+</script>
+<!-- ================= MODAIS (HTML) ================= -->
+<!-- 1. Modal de Leitura (Seu original restaurado) -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
-    <h3> Nova Leitura</h3>
-     seu formulário existente continua aqui 
+    <h3>📖 Nova Leitura</h3>
+    <form id="free-form">
+      <div class="form-group"><label>Livro</label><input type="text" id="f-book" required placeholder="Ex: Gênesis, Mateus, Salmos..."></div>
+      <div class="form-group"><label>Capítulo</label><input type="number" id="f-chapter" required min="1" placeholder="Ex: 1, 24, 119..."></div>
+      <div class="form-group"><label>Versículos (opcional)</label><input type="text" id="f-verses" placeholder="Ex: 1-14, 5, ou deixe em branco"></div>
+      <div class="form-group"><label>Data</label><input type="date" id="f-date" required></div>
+      <div class="modal-actions"><button type="button" class="btn btn-sec" onclick="closeModal()">Cancelar</button><button type="submit" class="btn">Salvar</button></div>
+    </form>
   </div>
 </div>
 
- 2. Modal Wiki (NOVO) -->
+<!-- 2. Modal Wiki (Novo) -->
 <div class="modal-overlay" id="wiki-modal">
   <div class="modal">
-    <h3> Como usar este app</h3>
+    <h3>❓ Como usar este app</h3>
     <div style="max-height:60vh;overflow-y:auto;padding-right:4px;">
-      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📅 Plano Oficial</h4>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;"> Plano Oficial</h4>
       <ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
         <li>Siga a leitura bíblica cronológica anual</li>
         <li>Clique no ✓ para marcar o dia concluído</li>
@@ -863,9 +870,11 @@ if ('serviceWorker' in navigator) {
   </div>
 </div>
 
- <script type="module">
+<!-- ================= SCRIPT (JavaScript) ================= -->
+<script type="module">
   // ⚠️ COLE AQUI TODO O SEU CÓDIGO JAVASCRIPT EXISTENTE
   // (imports, firebaseConfig, funções, initApp(), etc.)
+  // Nenhuma tag HTML ou comentário <!-- --> pode estar aqui dentro!
 </script>
 
 </body>
