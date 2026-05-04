@@ -550,40 +550,52 @@
 function renderFreeSummary() {
   const container = document.getElementById('free-summary');
   if (!container) return;
-  
+
   if (!freeReadings || freeReadings.length === 0) {
     container.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Nenhuma leitura registrada ainda.</p>';
     return;
   }
 
+  // Agrupa por livro e mantém apenas a leitura mais recente
   const byBook = {};
   freeReadings.forEach(r => {
-    const bookKey = r.book.toLowerCase().trim();
+    if (!r.book || !r.date) return; // Ignora registros incompletos
+    const bookKey = r.book.trim().toLowerCase();
     const current = byBook[bookKey];
-    if (!current || new Date(r.date) > new Date(current.date)) {
+    const dateCurrent = new Date(r.date);
+    const dateLast = current ? new Date(current.date) : new Date(0);
+
+    if (!current || dateCurrent > dateLast) {
       byBook[bookKey] = r;
     }
   });
 
+  // Ordena por data (mais recente primeiro)
   const sorted = Object.values(byBook).sort((a, b) => new Date(b.date) - new Date(a.date));
 
+  if (sorted.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Nenhuma leitura válida encontrada.</p>';
+    return;
+  }
+
   container.innerHTML = sorted.map(r => {
-    const lastCh = r.chapter ?? r.chapters ?? 1;
-    const nextCh = parseInt(lastCh) + 1;
+    const lastCh = r.chapter ?? r.chapters ?? "?";
+    const nextCh = (typeof lastCh === 'number') ? lastCh + 1 : 1;
     const safeBook = r.book.replace(/'/g, "\\'");
+    const versesText = r.verses ? `• Vs. ${r.verses}` : '';
+    
     return `
       <div class="free-card" style="margin-bottom:6px;">
         <div class="free-info">
           <h4 style="font-size:0.95rem;">${r.book}</h4>
-          <p style="font-size:0.8rem;">📖 Parou no Cap. ${lastCh} ${r.verses ? `• Vs. ${r.verses}` : ''} | 📅 ${formatDate(r.date)}</p>
+          <p style="font-size:0.8rem;">📖 Parou no Cap. ${lastCh} ${versesText} | 📅 ${formatDate(r.date)}</p>
         </div>
-        <button class="icon-btn" style="background:var(--primary);color:white;font-weight:600;" 
-                onclick="window.continueReading('${safeBook}', ${nextCh})" 
+        <button class="icon-btn" style="background:var(--primary);color:white;font-weight:600;"
+                onclick="window.continueReading('${safeBook}', ${nextCh})"
                 title="Continuar leitura">➡️</button>
       </div>`;
   }).join('');
 }
-
 // ➡️ ABRE FORMULÁRIO JÁ PREENCHIDO
 window.continueReading = (book, nextChapter) => {
   document.getElementById('f-book').value = book;
@@ -703,16 +715,18 @@ onAuthStateChanged(auth, async (user) => {
 }
 
   // 📖 LEITURAS LIVRES
-  function loadFreeReadings() {
-    if (!currentUserId) return;
-    const q = query(collection(db, `users/${currentUserId}/readings`), orderBy('date', 'desc'));
-    onSnapshot(q, (snap) => {
-      freeReadings = snap.docs.map(d => ({id:d.id, ...d.data()}));
-      renderFreeReadings();
-      renderFreeSummary();
-    });
-  }
-
+function loadFreeReadings() {
+  if (!currentUserId) return;
+  const q = query(collection(db, `users/${currentUserId}/readings`), orderBy('date','desc'));
+  onSnapshot(q, (snap) => {
+    freeReadings = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    console.log("📖 Leituras carregadas do Firebase:", freeReadings.length); // 🔍 Debug
+    renderFreeReadings();
+    renderFreeSummary();
+  }, (error) => {
+    console.error("❌ Erro ao ler leituras:", error);
+  });
+}
   function renderFreeReadings() {
     const container = document.getElementById('free-container');
     if (freeReadings.length === 0) {
