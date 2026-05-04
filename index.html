@@ -740,21 +740,24 @@ function loadFreeReadings() {
     console.error("Erro ao buscar:", err.code, err.message);
   });
 }
-    const container = document.getElementById('free-container');
-    if (freeReadings.length === 0) {
-      container.innerHTML = '<p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p>';
-      return;
-    }
-    container.innerHTML = freeReadings.map(r => `
-  <div class="free-card">
-    <div class="free-info">
-      <h4>${r.book}</h4>
-      <p>📖 Cap. ${r.chapter ?? r.chapters} ${r.verses ? `• Vs. ${r.verses}` : ''} | 📅 ${formatDate(r.date)}</p>
-    </div>
-    <button class="icon-btn delete" onclick="deleteFree('${r.id}')">🗑️</button>
-  </div>`).join('');
-  }
 
+function renderFreeReadings() {
+  const container = document.getElementById('free-container');
+  if (!container) return;
+  
+  if (!freeReadings || freeReadings.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p>';
+    return;
+  }
+  container.innerHTML = freeReadings.map(r => `
+    <div class="free-card">
+      <div class="free-info">
+        <h4>${r.book}</h4>
+        <p>📖 Cap. ${r.chapter ?? r.chapters} ${r.verses ? `• Vs. ${r.verses}` : ''} | 📅 ${formatDate(r.date)}</p>
+      </div>
+      <button class="icon-btn delete" onclick="deleteFree('${r.id}')">🗑️</button>
+    </div>`).join('');
+}
   window.deleteFree = async (id) => {
     if(confirm('Excluir esta leitura?')) {
       await deleteDoc(doc(db, `users/${currentUserId}/readings/${id}`));
