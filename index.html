@@ -616,7 +616,6 @@ window.continueReading = (book, nextChapter) => {
   function initApp() {
     setupMonthSelector();
     renderPlan();
-    loadFreeReadings();
   }
 
   // 🔐 AUTH
@@ -627,6 +626,7 @@ onAuthStateChanged(auth, async (user) => {
       currentUserId = user.uid;
       document.getElementById('user-id').textContent = `ID: ${user.uid.substring(0, 6)}...`;
       loadPlanProgress();
+      loadFreeReadings();
     } else {
       await signInAnonymously(auth);
     }
