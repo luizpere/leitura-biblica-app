@@ -123,7 +123,9 @@
   // ✅ IMPORTS NO TOPO (obrigatório)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-  import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, serverTimestamp, query, orderBy }
+console.log("✅ Script carregado com sucesso!");
+ from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   // Esconde loading rápido
   setTimeout(() => { const l = document.getElementById('loading'); if(l) l.style.display = 'none'; }, 150);
