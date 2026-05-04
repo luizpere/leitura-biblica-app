@@ -63,6 +63,12 @@
     .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#334155; color:white; padding:10px 16px; border-radius:30px; font-size:0.85rem; opacity:0; transition:0.3s; z-index:300; }
     .toast.show { opacity:1; bottom:40px; }
   </style>
+<!-- PWA: Suporte a instalação e tema -->
+<meta name="theme-color" content="#10b981">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 </head>
 <body>
   <div id="loading"><div class="spinner"></div></div>
@@ -795,5 +801,13 @@ await addDoc(collection(db, `users/${currentUserId}/readings`), {
   window.showToast = (msg) => { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); };
   document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
 
+// 📱 Registrar Service Worker para PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then(() => console.log('✅ PWA ativo: pode instalar no celular!'))
+      .catch(err => console.error('Erro SW:', err));
+  });
+}
   initApp();
 </script>
