@@ -727,15 +727,25 @@ function loadFreeReadings() {
   if (!currentUserId) return;
   const q = query(collection(db, `users/${currentUserId}/readings`), orderBy('date','desc'));
   onSnapshot(q, (snap) => {
+  function loadFreeReadings() {
+  if (!currentUserId) {
+    console.log("⏳ currentUserId ainda não definido");
+    return;
+  }
+  console.log("🔍 Carregando leituras para user:", currentUserId);
+  
+  const q = query(collection(db, `users/${currentUserId}/readings`), orderBy('date','desc'));
+  onSnapshot(q, (snap) => {
+    console.log("📦 Docs retornados:", snap.docs.length);
+    snap.docs.forEach((d, i) => console.log(`📄 Doc ${i}:`, d.data()));
+    
     freeReadings = snap.docs.map(d => ({id:d.id, ...d.data()}));
-    console.log("📖 Leituras carregadas do Firebase:", freeReadings.length); // 🔍 Debug
     renderFreeReadings();
     renderFreeSummary();
   }, (error) => {
-    console.error("❌ Erro ao ler leituras:", error);
+    console.error("❌ Erro ao ler leituras:", error.code, error.message);
   });
 }
-  function renderFreeReadings() {
     const container = document.getElementById('free-container');
     if (freeReadings.length === 0) {
       container.innerHTML = '<p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p>';
