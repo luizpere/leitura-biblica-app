@@ -77,6 +77,12 @@
   <div class="container">
     <header>
       <h1>📖 Minha Leitura Bíblica</h1>
+<header>
+  <h1>📖 Minha Leitura Bíblica</h1>
+  <div id="user-id">Conectando...</div>
+  <!-- Botão Wiki -->
+  <button class="icon-btn" onclick="openWikiModal()" style="margin-top:8px;background:rgba(16,185,129,0.15);color:var(--primary);" title="Como usar">❓ Como usar</button>
+</header>
       <div id="user-id">Conectando...</div>
     </header>
 
@@ -810,4 +816,59 @@ if ('serviceWorker' in navigator) {
   });
 }
   initApp();
+
+<!-- ================= MODAIS (HTML) ================= -->
+<!-- 1. Modal de Leitura (JÁ EXISTENTE - mantenha seu conteúdo interno intacto) -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3> Nova Leitura</h3>
+    <!-- ... seu formulário existente continua aqui ... -->
+  </div>
+</div>
+
+<!-- 2. Modal Wiki (NOVO) -->
+<div class="modal-overlay" id="wiki-modal">
+  <div class="modal">
+    <h3> Como usar este app</h3>
+    <div style="max-height:60vh;overflow-y:auto;padding-right:4px;">
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📅 Plano Oficial</h4>
+      <ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
+        <li>Siga a leitura bíblica cronológica anual</li>
+        <li>Clique no ✓ para marcar o dia concluído</li>
+        <li>Progresso salva na nuvem automaticamente</li>
+      </ul>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📖 Leitura Livre</h4>
+      <ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
+        <li>Registre leituras fora do plano, no seu ritmo</li>
+        <li>Preencha: Livro + Capítulo + Versículos (opcional)</li>
+      </ul>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📍 "Onde parei?"</h4>
+      <ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
+        <li>Veja o último capítulo lido de cada livro</li>
+        <li>Clique em ➡️ para continuar de onde parou</li>
+      </ul>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📱 Instalar no celular</h4>
+      <ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
+        <li>Chrome: ⋮ → "Instalar" ou "Adicionar à tela inicial"</li>
+        <li>Safari: ⬆️ → "Adicionar à Tela de Início"</li>
+      </ul>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">🔐 Privacidade</h4>
+      <ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
+        <li>Login anônimo: sem cadastro, sem e-mail</li>
+        <li>Cada usuário tem espaço isolado na nuvem</li>
+      </ul>
+    </div>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn" onclick="closeWikiModal()">Entendi, obrigado!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= SCRIPTS (JavaScript) ================= -->
+<script type="module">
+  // ⚠️ COLE AQUI TODO O SEU CÓDIGO JAVASCRIPT EXISTENTE
+  // (imports, firebaseConfig, funções, initApp(), etc.)
 </script>
+
+</body>
+</html>
