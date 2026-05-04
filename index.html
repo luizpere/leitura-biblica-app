@@ -92,13 +92,20 @@
     </div>
 
     <!-- ABA LIVRE -->
-    <div id="tab-livre" style="display:none;">
-      <button class="btn" onclick="openFreeModal()">➕ Registrar Leitura</button>
-      <div class="readings-list" id="free-container">
-        <p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p>
-      </div>
-    </div>
+    <!-- ABA LEITURA LIVRE -->
+<div id="tab-livre" style="display:none;">
+  <button class="btn" onclick="openFreeModal()">➕ Registrar Leitura</button>
+  
+  <!-- 📍 RESUMO: ONDE PAREI? (CORRETAMENTE POSICIONADO) -->
+  <div class="progress-box" style="margin:16px 0 12px; padding:12px; background:var(--card); border-radius:var(--radius); border:1px solid var(--border);">
+    <h3 style="font-size:0.95rem; margin-bottom:8px; color:var(--text)">📍 Onde parei?</h3>
+    <div id="free-summary" style="max-height:200px; overflow-y:auto;"></div>
   </div>
+
+  <div class="readings-list" id="free-container">
+    <p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p>
+  </div>
+</div>
 
   <div class="modal-overlay" id="modal">
     <div class="modal">
@@ -539,6 +546,52 @@
     { dia: 31, livro: "SALMOS", caps: "64 - 66" }
   ]
 }; 
+// 📍 RENDERIZA RESUMO "ONDE PAREI?"
+function renderFreeSummary() {
+  const container = document.getElementById('free-summary');
+  if (!container) return;
+  
+  if (!freeReadings || freeReadings.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Nenhuma leitura registrada ainda.</p>';
+    return;
+  }
+
+  const byBook = {};
+  freeReadings.forEach(r => {
+    const bookKey = r.book.toLowerCase().trim();
+    const current = byBook[bookKey];
+    if (!current || new Date(r.date) > new Date(current.date)) {
+      byBook[bookKey] = r;
+    }
+  });
+
+  const sorted = Object.values(byBook).sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  container.innerHTML = sorted.map(r => {
+    const lastCh = r.chapter ?? r.chapters ?? 1;
+    const nextCh = parseInt(lastCh) + 1;
+    const safeBook = r.book.replace(/'/g, "\\'");
+    return `
+      <div class="free-card" style="margin-bottom:6px;">
+        <div class="free-info">
+          <h4 style="font-size:0.95rem;">${r.book}</h4>
+          <p style="font-size:0.8rem;">📖 Parou no Cap. ${lastCh} ${r.verses ? `• Vs. ${r.verses}` : ''} | 📅 ${formatDate(r.date)}</p>
+        </div>
+        <button class="icon-btn" style="background:var(--primary);color:white;font-weight:600;" 
+                onclick="window.continueReading('${safeBook}', ${nextCh})" 
+                title="Continuar leitura">➡️</button>
+      </div>`;
+  }).join('');
+}
+
+// ➡️ ABRE FORMULÁRIO JÁ PREENCHIDO
+window.continueReading = (book, nextChapter) => {
+  document.getElementById('f-book').value = book;
+  document.getElementById('f-chapter').value = nextChapter;
+  document.getElementById('f-verses').value = '';
+  document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+  openFreeModal();
+};
 
   function initApp() {
     setupMonthSelector();
@@ -656,6 +709,7 @@ onAuthStateChanged(auth, async (user) => {
     onSnapshot(q, (snap) => {
       freeReadings = snap.docs.map(d => ({id:d.id, ...d.data()}));
       renderFreeReadings();
+      renderFreeSummary();
     });
   }
 
