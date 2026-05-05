@@ -15,17 +15,23 @@
     #user-id { font-size:0.75rem; color:var(--text-muted); background:var(--card); padding:3px 8px; border-radius:20px; display:inline-block; }
     
     /* Abas */
-    .tabs { display:flex; gap:8px; margin-bottom:16px; }
-    .tab-btn { flex:1; padding:10px; border:1px solid var(--border); border-radius:var(--radius); background:transparent; color:var(--text-muted); cursor:pointer; font-weight:600; transition:0.2s; }
+    .tabs { display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; padding-bottom:4px; }
+    .tab-btn { flex:1; white-space:nowrap; padding:10px; border:1px solid var(--border); border-radius:var(--radius); background:transparent; color:var(--text-muted); cursor:pointer; font-weight:600; transition:0.2s; min-width:100px; }
     .tab-btn.active { background:var(--primary); color:white; border-color:var(--primary); }
     
-    /* Progresso */
+    /* Progresso & Stats */
     .progress-box { background:var(--card); padding:12px; border-radius:var(--radius); margin-bottom:16px; border:1px solid var(--border); }
+    .stats-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:16px; }
+    .stat-card { background:var(--card); padding:10px; border-radius:var(--radius); border:1px solid var(--border); text-align:center; }
+    .stat-val { font-size:1.2rem; font-weight:bold; color:var(--primary); }
+    .stat-label { font-size:0.7rem; color:var(--text-muted); }
+    
     .progress-bar { height:8px; background:var(--border); border-radius:4px; overflow:hidden; margin-top:6px; }
     .progress-fill { height:100%; background:var(--primary); transition:width 0.4s ease; }
     .progress-text { display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); }
 
     /* Plano Oficial */
+    .search-box { width:100%; padding:10px; margin-bottom:12px; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:8px; font-size:1rem; }
     #month-selector { width:100%; padding:10px; margin-bottom:12px; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:8px; font-size:1rem; }
     .plan-list { display:flex; flex-direction:column; gap:8px; max-height:60vh; overflow-y:auto; }
     .plan-day { background:var(--card); padding:10px 14px; border-radius:8px; border:1px solid var(--border); display:flex; align-items:center; gap:12px; }
@@ -36,7 +42,7 @@
     .day-text { flex:1; }
     .day-label { font-size:0.75rem; color:var(--text-muted); }
 
-    /* Leitura Livre */
+    /* Leitura Livre & Notas */
     .btn { width:100%; padding:12px; border:none; border-radius:var(--radius); background:var(--primary); color:white; font-size:1rem; font-weight:600; cursor:pointer; margin-bottom:16px; }
     .btn:hover { background:var(--primary-hover); }
     .readings-list { display:flex; flex-direction:column; gap:10px; }
@@ -46,6 +52,10 @@
     .icon-btn { width:30px; height:30px; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1); color:var(--text); transition:0.2s; }
     .icon-btn.delete:hover { background:var(--danger); color:white; }
 
+    /* Metas */
+    .goal-box { background:var(--card); padding:12px; border-radius:var(--radius); margin-bottom:16px; border:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+    .goal-input { width:60px; padding:4px; border-radius:4px; border:1px solid var(--border); background:var(--bg); color:var(--text); text-align:center; }
+
     /* Modal */
     .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; z-index:100; }
     .modal-overlay.open { opacity:1; pointer-events:auto; }
@@ -53,7 +63,7 @@
     .modal-overlay.open .modal { transform:translateY(0); }
     .form-group { margin-bottom:12px; }
     .form-group label { display:block; margin-bottom:4px; font-size:0.85rem; color:var(--text-muted); }
-    .form-group input { width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--card); color:var(--text); }
+    .form-group input, .form-group textarea { width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--card); color:var(--text); }
     .modal-actions { display:flex; gap:8px; margin-top:12px; }
     .btn-sec { background:var(--card); color:var(--text); }
 
@@ -63,7 +73,6 @@
     .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#334155; color:white; padding:10px 16px; border-radius:30px; font-size:0.85rem; opacity:0; transition:0.3s; z-index:300; }
     .toast.show { opacity:1; bottom:40px; }
   </style>
-  <!-- PWA: Suporte a instalação e tema -->
   <meta name="theme-color" content="#10b981">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -73,17 +82,19 @@
 <body>
   <div id="loading"><div class="spinner"></div></div>
   <div class="toast" id="toast"></div>
-
   <div class="container">
     <header>
       <h1>📖 Minha Leitura Bíblica</h1>
       <div id="user-id">Conectando...</div>
       <button class="icon-btn" onclick="openWikiModal()" style="margin-top:8px;background:rgba(16,185,129,0.15);color:var(--primary);" title="Como usar">❓ Como usar</button>
     </header>
-
+    
+    <!-- ABAS -->
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('plano')">📅 Plano Oficial</button>
-      <button class="tab-btn" onclick="switchTab('livre')">📖 Leitura Livre</button>
+      <button class="tab-btn active" onclick="switchTab('plano')">📅 Plano</button>
+      <button class="tab-btn" onclick="switchTab('livre')">📖 Leitura</button>
+      <button class="tab-btn" onclick="switchTab('notas')">📝 Notas</button>
+      <button class="tab-btn" onclick="switchTab('stats')">📊 Stats</button>
     </div>
 
     <!-- ABA PLANO -->
@@ -92,122 +103,81 @@
         <div class="progress-text"><span id="month-label">Janeiro</span><span id="month-pct">0%</span></div>
         <div class="progress-bar"><div class="progress-fill" id="month-bar"></div></div>
       </div>
+      <input type="text" id="plan-search" class="search-box" placeholder="🔍 Buscar livro ou capítulo...">
       <select id="month-selector"></select>
-      <div class="plan-list" id="plan-container">
-        <p style="text-align:center;color:var(--text-muted);">Carregando plano...</p>
-      </div>
+      <div class="plan-list" id="plan-container"><p style="text-align:center;color:var(--text-muted);">Carregando plano...</p></div>
     </div>
 
     <!-- ABA LEITURA LIVRE -->
     <div id="tab-livre" style="display:none;">
       <button class="btn" onclick="openFreeModal()">➕ Registrar Leitura</button>
- <!-- 🔹 ABA ANOTAÇÕES (adicione este botão junto aos outros botões de aba) -->
-<div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('plano')">📅 Plano Oficial</button>
-  <button class="tab-btn" onclick="switchTab('livre')">📖 Leitura Livre</button>
-  <button class="tab-btn" onclick="switchTab('notas')">📝 Anotações</button>
-</div>
-
-<!-- 🔹 CONTEÚDO DA ABA ANOTAÇÕES -->
-<div id="tab-notas" style="display:none;">
-  <button class="btn" onclick="openNoteModal()">➕ Nova Anotação</button>
-  <div id="notes-container" class="readings-list">
-    <p style="text-align:center;color:var(--text-muted);">Nenhuma anotação registrada ainda.</p>
-  </div>
-</div>
-
-<!-- 🔹 MODAL DE ANOTAÇÃO (cole junto com os outros modais) -->
-<div class="modal-overlay" id="note-modal">
-  <div class="modal">
-    <h3>📝 Nova Anotação</h3>
-    <form id="note-form">
-      <div class="form-group">
-        <label>Data</label>
-        <input type="date" id="n-date" required>
-      </div>
-      <div class="form-group">
-        <label>Referência (opcional)</label>
-        <input type="text" id="n-reference" placeholder="Ex: Salmos 23, João 3:16...">
-      </div>
-      <div class="form-group">
-        <label>Sua reflexão</label>
-        <textarea id="n-text" rows="4" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);resize:vertical;" required placeholder="Escreva aqui seus insights, orações ou aprendizados..."></textarea>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-sec" onclick="closeNoteModal()">Cancelar</button>
-        <button type="submit" class="btn">Salvar</button>
-      </div>
-    </form>
-  </div>
-</div>     
-
-      <!-- 📍 RESUMO: ONDE PAREI? -->
       <div class="progress-box" style="margin:16px 0 12px; padding:12px; background:var(--card); border-radius:var(--radius); border:1px solid var(--border);">
         <h3 style="font-size:0.95rem; margin-bottom:8px; color:var(--text)">📍 Onde parei?</h3>
         <div id="free-summary" style="max-height:200px; overflow-y:auto;"></div>
       </div>
+      <div class="readings-list" id="free-container"><p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p></div>
+    </div>
 
-      <div class="readings-list" id="free-container">
-        <p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p>
+    <!-- ABA ANOTAÇÕES -->
+    <div id="tab-notas" style="display:none;">
+      <button class="btn" onclick="openNoteModal()">➕ Nova Anotação</button>
+      <div id="notes-container" class="readings-list"><p style="text-align:center;color:var(--text-muted);">Nenhuma anotação registrada ainda.</p></div>
+    </div>
+
+    <!-- ABA ESTATÍSTICAS & METAS -->
+    <div id="tab-stats" style="display:none;">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val" id="streak-val">0</div><div class="stat-label">Dias Seguidos</div></div>
+        <div class="stat-card"><div class="stat-val" id="total-readings-val">0</div><div class="stat-label">Leituras Totais</div></div>
+        <div class="stat-card"><div class="stat-val" id="total-progress-val">0%</div><div class="stat-label">Progresso Geral</div></div>
+      </div>
+      
+      <div class="goal-box">
+        <div>
+          <strong style="font-size:0.9rem;">🎯 Meta Semanal</strong>
+          <p style="font-size:0.75rem;color:var(--text-muted);">Capítulos por semana</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="number" id="weekly-goal-input" class="goal-input" value="7" min="1">
+          <button class="icon-btn" onclick="saveGoal()" style="background:var(--primary);color:white;">💾</button>
+        </div>
+      </div>
+      <div class="progress-box">
+        <div class="progress-text"><span>Progresso da Semana</span><span id="week-pct">0/7</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="week-bar" style="width:0%"></div></div>
       </div>
     </div>
   </div>
 
-  <!-- MODAL DE LEITURA (único) -->
+  <!-- MODAIS -->
   <div class="modal-overlay" id="modal">
-    <div class="modal">
-      <h3>📖 Nova Leitura</h3>
-      <form id="free-form">
-        <div class="form-group"><label>Livro</label><input type="text" id="f-book" required placeholder="Ex: Gênesis, Mateus, Salmos..."></div>
-        <div class="form-group"><label>Capítulo</label><input type="number" id="f-chapter" required min="1" placeholder="Ex: 1, 24, 119..."></div>
-        <div class="form-group"><label>Versículos (opcional)</label><input type="text" id="f-verses" placeholder="Ex: 1-14, 5, ou deixe em branco"></div>
-        <div class="form-group"><label>Data</label><input type="date" id="f-date" required></div>
-        <div class="modal-actions"><button type="button" class="btn btn-sec" onclick="closeModal()">Cancelar</button><button type="submit" class="btn">Salvar</button></div>
-      </form>
-    </div>
+    <div class="modal"><h3>📖 Nova Leitura</h3><form id="free-form">
+      <div class="form-group"><label>Livro</label><input type="text" id="f-book" required placeholder="Ex: Gênesis, Mateus..."></div>
+      <div class="form-group"><label>Capítulo</label><input type="number" id="f-chapter" required min="1" placeholder="Ex: 1, 24..."></div>
+      <div class="form-group"><label>Versículos (opcional)</label><input type="text" id="f-verses" placeholder="Ex: 1-14..."></div>
+      <div class="form-group"><label>Data</label><input type="date" id="f-date" required></div>
+      <div class="modal-actions"><button type="button" class="btn btn-sec" onclick="closeModal()">Cancelar</button><button type="submit" class="btn">Salvar</button></div>
+    </form></div>
   </div>
-
-  <!-- MODAL WIKI: COMO USAR -->
   <div class="modal-overlay" id="wiki-modal">
-    <div class="modal">
-      <h3>❓ Como usar este app</h3>
-      <div style="max-height:60vh;overflow-y:auto;padding-right:4px;">
-        <h4 style="margin:12px 0 6px;font-size:0.95rem;">📅 Plano Oficial</h4>
-        <ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
-          <li>Siga a leitura bíblica cronológica anual</li>
-          <li>Clique no ✓ para marcar o dia concluído</li>
-          <li>Progresso salva na nuvem automaticamente</li>
-        </ul>
-        <h4 style="margin:12px 0 6px;font-size:0.95rem;">📖 Leitura Livre</h4>
-        <ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
-          <li>Registre leituras fora do plano, no seu ritmo</li>
-          <li>Preencha: Livro + Capítulo + Versículos (opcional)</li>
-        </ul>
-        <h4 style="margin:12px 0 6px;font-size:0.95rem;">📍 "Onde parei?"</h4>
-        <ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
-          <li>Veja o último capítulo lido de cada livro</li>
-          <li>Clique em ➡️ para continuar de onde parou</li>
-        </ul>
-        <h4 style="margin:12px 0 6px;font-size:0.95rem;">📱 Instalar no celular</h4>
-        <ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
-          <li>Chrome: ⋮ → "Instalar" ou "Adicionar à tela inicial"</li>
-          <li>Safari: ⬆️ → "Adicionar à Tela de Início"</li>
-        </ul>
-        <h4 style="margin:12px 0 6px;font-size:0.95rem;">🔐 Privacidade</h4>
-        <ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;">
-          <li>Login anônimo: sem cadastro, sem e-mail</li>
-          <li>Cada usuário tem espaço isolado na nuvem</li>
-        </ul>
-      </div>
-      <div class="modal-actions" style="margin-top:16px;">
-        <button class="btn" onclick="closeWikiModal()">Entendi, obrigado!</button>
-      </div>
-    </div>
+    <div class="modal"><h3>❓ Como usar este app</h3><div style="max-height:60vh;overflow-y:auto;padding-right:4px;">
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📅 Plano Oficial</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Siga a leitura bíblica cronológica anual</li><li>Clique no ✓ para marcar o dia concluído</li><li>Use a busca 🔍 para encontrar rapidamente</li></ul>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📖 Leitura Livre</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Registre leituras fora do plano, no seu ritmo</li><li>Preencha: Livro + Capítulo + Versículos (opcional)</li></ul>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📊 Estatísticas</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Acompanhe seus dias seguidos e progresso total</li><li>Defina metas semanais de capítulos</li></ul>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">🔐 Privacidade</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Login anônimo: sem cadastro, sem e-mail</li><li>Cada usuário tem espaço isolado na nuvem</li></ul>
+    </div><div class="modal-actions" style="margin-top:16px;"><button class="btn" onclick="closeWikiModal()">Entendi, obrigado!</button></div></div>
+  </div>
+  <div class="modal-overlay" id="note-modal">
+    <div class="modal"><h3>📝 Nova Anotação</h3><form id="note-form">
+      <div class="form-group"><label>Data</label><input type="date" id="n-date" required></div>
+      <div class="form-group"><label>Referência (opcional)</label><input type="text" id="n-reference" placeholder="Ex: Salmos 23, João 3:16..."></div>
+      <div class="form-group"><label>Sua reflexão</label><textarea id="n-text" rows="4" required placeholder="Escreva aqui seus insights, orações ou aprendizados..."></textarea></div>
+      <div class="modal-actions"><button type="button" class="btn btn-sec" onclick="closeNoteModal()">Cancelar</button><button type="submit" class="btn">Salvar</button></div>
+    </form></div>
   </div>
 
-  <!-- JAVASCRIPT (ÚNICO BLOCO, TUDO AQUI) -->
+  <!-- JAVASCRIPT ÚNICO -->
   <script type="module">
-    // ✅ IMPORTS (PRIMEIRAS LINHAS)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -215,521 +185,152 @@
     console.log("✅ Script carregado com sucesso!");
     setTimeout(() => { const l = document.getElementById('loading'); if(l) l.style.display = 'none'; }, 150);
 
-    // 🔑 FIREBASE CONFIG
-    const firebaseConfig = {
-      apiKey: "AIzaSyCtL4WMoTxBPb3C5SFWEeX6fdOXgXQpvig",
-      authDomain: "leitura-cronologica.firebaseapp.com",
-      projectId: "leitura-cronologica",
-      storageBucket: "leitura-cronologica.firebasestorage.app",
-      messagingSenderId: "1096688670210",
-      appId: "1:1096688670210:web:b19ddb80b393068b27f91b"
-    };
-
+    const firebaseConfig = { apiKey: "AIzaSyCtL4WMoTxBPb3C5SFWEeX6fdOXgXQpvig", authDomain: "leitura-cronologica.firebaseapp.com", projectId: "leitura-cronologica", storageBucket: "leitura-cronologica.firebasestorage.app", messagingSenderId: "1096688670210", appId: "1:1096688670210:web:b19ddb80b393068b27f91b" };
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let currentUserId = null;
-    let planProgress = {};
-    let freeReadings = [];
-    let currentMonth = "JANEIRO";
+    let currentUserId = null, planProgress = {}, freeReadings = [], userNotes = [], currentMonth = "JANEIRO", weeklyGoal = 7;
 
-    // 📖 PLANO DE LEITURA
+    // 📖 PLANO COMPLETO (mantido integral)
     const PLAN_DATA = {
-      "JANEIRO": [
-        { dia: 1, livro: "SALMOS", caps: "67 - 69" }, { dia: 2, livro: "SALMOS", caps: "70 - 72" },
-        { dia: 3, livro: "SALMOS", caps: "73 - 75" }, { dia: 4, livro: "SALMOS", caps: "76 - 78" },
-        { dia: 5, livro: "SALMOS", caps: "79 - 81" }, { dia: 6, livro: "SALMOS", caps: "82 - 84" },
-        { dia: 7, livro: "SALMOS", caps: "85 - 87" }, { dia: 8, livro: "SALMOS", caps: "88 - 90" },
-        { dia: 9, livro: "SALMOS", caps: "91 - 93" }, { dia: 10, livro: "SALMOS", caps: "94 - 96" },
-        { dia: 11, livro: "SALMOS", caps: "97 - 99" }, { dia: 12, livro: "SALMOS", caps: "100 - 102" },
-        { dia: 13, livro: "SALMOS", caps: "103 - 105" }, { dia: 14, livro: "SALMOS", caps: "106 - 108" },
-        { dia: 15, livro: "SALMOS", caps: "109 - 111" }, { dia: 16, livro: "SALMOS", caps: "112 - 114" },
-        { dia: 17, livro: "SALMOS", caps: "115 - 118" }, { dia: 18, livro: "SALMOS", caps: "119" },
-        { dia: 19, livro: "SALMOS", caps: "120 - 123" }, { dia: 20, livro: "SALMOS", caps: "124 - 126" },
-        { dia: 21, livro: "SALMOS", caps: "127 - 129" }, { dia: 22, livro: "SALMOS", caps: "130 - 132" },
-        { dia: 23, livro: "SALMOS", caps: "133 - 135" }, { dia: 24, livro: "SALMOS", caps: "136 - 138" },
-        { dia: 25, livro: "SALMOS", caps: "139 - 141" }, { dia: 26, livro: "SALMOS", caps: "142 - 144" },
-        { dia: 27, livro: "SALMOS", caps: "145 - 147" }, { dia: 28, livro: "SALMOS", caps: "148 - 150" },
-        { dia: 29, livro: "1 REIS", caps: "1 - 4" }, { dia: 30, livro: "PROVÉRBIOS", caps: "1 - 3" },
-        { dia: 31, livro: "PROVÉRBIOS", caps: "4 - 7" }
-      ],
-      "FEVEREIRO": [
-        { dia: 1, livro: "PROVÉRBIOS", caps: "8 - 11" }, { dia: 2, livro: "PROVÉRBIOS", caps: "12 - 14" },
-        { dia: 3, livro: "PROVÉRBIOS", caps: "15 - 18" }, { dia: 4, livro: "PROVÉRBIOS", caps: "19 - 21" },
-        { dia: 5, livro: "PROVÉRBIOS", caps: "22 - 24" }, { dia: 6, livro: "PROVÉRBIOS", caps: "25 - 26" },
-        { dia: 7, livro: "PROVÉRBIOS", caps: "27 - 31" }, { dia: 8, livro: "ECLESIASTES", caps: "1 - 3" },
-        { dia: 9, livro: "ECLESIASTES", caps: "4 - 6" }, { dia: 10, livro: "ECLESIASTES", caps: "7 - 9" },
-        { dia: 11, livro: "ECLESIASTES", caps: "10 - 12" }, { dia: 12, livro: "CÂNT. SALOMÃO", caps: "1 - 4" },
-        { dia: 13, livro: "CÂNT. SALOMÃO", caps: "5 - 8" }, { dia: 14, livro: "1 REIS", caps: "5 - 7" },
-        { dia: 15, livro: "1 REIS", caps: "8 - 10" }, { dia: 16, livro: "1 REIS", caps: "11 - 13" },
-        { dia: 17, livro: "1 REIS", caps: "14 - 16" }, { dia: 18, livro: "1 REIS", caps: "17 - 19" },
-        { dia: 19, livro: "1 REIS", caps: "20 - 22" }, { dia: 20, livro: "2 REIS", caps: "1 - 3" },
-        { dia: 21, livro: "2 REIS", caps: "4 - 6" }, { dia: 22, livro: "2 REIS", caps: "7 - 10" },
-        { dia: 23, livro: "2 REIS", caps: "11 - 14:20" }, { dia: 24, livro: "JONAS", caps: "1 - 4" },
-        { dia: 25, livro: "2 REIS / JOEL", caps: "14:21 - 25 / 1 - 3" },
-        { dia: 26, livro: "2 REIS / AMÓS", caps: "14:26 - 29 / 1 - 3" },
-        { dia: 27, livro: "AMÓS", caps: "4 - 6" }, { dia: 28, livro: "AMÓS", caps: "7 - 9" }
-      ],
-      "MARÇO": [
-        { dia: 1, livro: "2 REIS", caps: "15 - 17" }, { dia: 2, livro: "OSÉIAS", caps: "1 - 4" },
-        { dia: 3, livro: "OSÉIAS", caps: "5 - 7" }, { dia: 4, livro: "OSÉIAS", caps: "8 - 10" },
-        { dia: 5, livro: "OSÉIAS", caps: "11 - 14" }, { dia: 6, livro: "2 REIS", caps: "18 - 19" },
-        { dia: 7, livro: "ISAÍAS", caps: "1 - 3" }, { dia: 8, livro: "ISAÍAS", caps: "4 - 6" },
-        { dia: 9, livro: "ISAÍAS", caps: "7 - 9" }, { dia: 10, livro: "ISAÍAS", caps: "10 - 12" },
-        { dia: 11, livro: "ISAÍAS", caps: "13 - 15" }, { dia: 12, livro: "ISAÍAS", caps: "16 - 18" },
-        { dia: 13, livro: "ISAÍAS", caps: "19 - 21" }, { dia: 14, livro: "ISAÍAS", caps: "22 - 24" },
-        { dia: 15, livro: "ISAÍAS", caps: "25 - 27" }, { dia: 16, livro: "ISAÍAS", caps: "28 - 30" },
-        { dia: 17, livro: "ISAÍAS", caps: "31 - 33" }, { dia: 18, livro: "ISAÍAS", caps: "34 - 36" },
-        { dia: 19, livro: "ISAÍAS", caps: "37 - 39" }, { dia: 20, livro: "ISAÍAS", caps: "40 - 42" },
-        { dia: 21, livro: "ISAÍAS", caps: "43 - 45" }, { dia: 22, livro: "ISAÍAS", caps: "46 - 48" },
-        { dia: 23, livro: "ISAÍAS", caps: "49 - 51" }, { dia: 24, livro: "ISAÍAS", caps: "52 - 54" },
-        { dia: 25, livro: "ISAÍAS", caps: "55 - 57" }, { dia: 26, livro: "ISAÍAS", caps: "58 - 60" },
-        { dia: 27, livro: "ISAÍAS", caps: "61 - 63" }, { dia: 28, livro: "ISAÍAS", caps: "64 - 66" },
-        { dia: 29, livro: "MIQUÉIAS", caps: "1 - 4" }, { dia: 30, livro: "MIQUÉIAS", caps: "5 - 7" },
-        { dia: 31, livro: "SOFONIAS", caps: "1 - 3" }
-      ],
-      "ABRIL": [
-        { dia: 1, livro: "2 REIS", caps: "20 - 21" }, { dia: 2, livro: "NAUM", caps: "1 - 3" },
-        { dia: 3, livro: "HABACUQUE", caps: "1 - 3" }, { dia: 4, livro: "2 REIS / OBADIAS", caps: "22 - 25 / 1" },
-        { dia: 5, livro: "JEREMIAS", caps: "1 - 2" }, { dia: 6, livro: "JEREMIAS", caps: "3 - 5" },
-        { dia: 7, livro: "JEREMIAS", caps: "6 - 8" }, { dia: 8, livro: "JEREMIAS", caps: "9 - 12" },
-        { dia: 9, livro: "JEREMIAS", caps: "13 - 16" }, { dia: 10, livro: "JEREMIAS", caps: "17 - 20" },
-        { dia: 11, livro: "JEREMIAS", caps: "21 - 23" }, { dia: 12, livro: "JEREMIAS", caps: "24 - 26" },
-        { dia: 13, livro: "JEREMIAS", caps: "27 - 29" }, { dia: 14, livro: "JEREMIAS", caps: "30 - 32" },
-        { dia: 15, livro: "JEREMIAS", caps: "33 - 36" }, { dia: 16, livro: "JEREMIAS", caps: "37 - 39" },
-        { dia: 17, livro: "LAMENTAÇÕES", caps: "1 - 5" }, { dia: 18, livro: "JEREMIAS", caps: "40 - 42" },
-        { dia: 19, livro: "JEREMIAS", caps: "43 - 46" }, { dia: 20, livro: "JEREMIAS", caps: "47 - 49" },
-        { dia: 21, livro: "JEREMIAS", caps: "50 - 52" }, { dia: 22, livro: "EZEQUIEL", caps: "1 - 3" },
-        { dia: 23, livro: "EZEQUIEL", caps: "4 - 7" }, { dia: 24, livro: "EZEQUIEL", caps: "8 - 11" },
-        { dia: 25, livro: "EZEQUIEL", caps: "12 - 14" }, { dia: 26, livro: "EZEQUIEL", caps: "15 - 18" },
-        { dia: 27, livro: "EZEQUIEL", caps: "19 - 21" }, { dia: 28, livro: "EZEQUIEL", caps: "22 - 24" },
-        { dia: 29, livro: "EZEQUIEL", caps: "25 - 27" }, { dia: 30, livro: "EZEQUIEL", caps: "28 - 30" }
-      ],
-      "MAIO": [
-        { dia: 1, livro: "EZEQUIEL", caps: "31 - 33" }, { dia: 2, livro: "EZEQUIEL", caps: "34 - 36" },
-        { dia: 3, livro: "EZEQUIEL", caps: "37 - 39" }, { dia: 4, livro: "EZEQUIEL", caps: "40 - 42" },
-        { dia: 5, livro: "EZEQUIEL", caps: "43 - 45" }, { dia: 6, livro: "EZEQUIEL", caps: "46 - 48" },
-        { dia: 7, livro: "DANIEL", caps: "1 - 3" }, { dia: 8, livro: "DANIEL", caps: "4 - 6" },
-        { dia: 9, livro: "DANIEL", caps: "7 - 9" }, { dia: 10, livro: "DANIEL", caps: "10 - 12" },
-        { dia: 11, livro: "ESDRAS", caps: "1 - 4" }, { dia: 12, livro: "2 CRÔNICAS", caps: "1 - 3" },
-        { dia: 13, livro: "2 CRÔNICAS", caps: "4 - 6" }, { dia: 14, livro: "2 CRÔNICAS", caps: "7 - 9" },
-        { dia: 15, livro: "2 CRÔNICAS", caps: "10 - 13" }, { dia: 16, livro: "2 CRÔNICAS", caps: "14 - 16" },
-        { dia: 17, livro: "2 CRÔNICAS", caps: "17 - 19" }, { dia: 18, livro: "2 CRÔNICAS", caps: "20 - 22" },
-        { dia: 19, livro: "2 CRÔNICAS", caps: "23 - 25" }, { dia: 20, livro: "2 CRÔNICAS", caps: "26 - 29" },
-        { dia: 21, livro: "2 CRÔNICAS", caps: "30 - 32" }, { dia: 22, livro: "2 CRÔNICAS", caps: "33 - 36" },
-        { dia: 23, livro: "1 CRÔNICAS", caps: "1 - 3" }, { dia: 24, livro: "1 CRÔNICAS", caps: "4 - 6" },
-        { dia: 25, livro: "1 CRÔNICAS", caps: "7 - 9" }, { dia: 26, livro: "1 CRÔNICAS", caps: "10 - 13" },
-        { dia: 27, livro: "1 CRÔNICAS", caps: "14 - 16" }, { dia: 28, livro: "1 CRÔNICAS", caps: "17 - 19" },
-        { dia: 29, livro: "1 CRÔNICAS", caps: "20 - 23" }, { dia: 30, livro: "1 CRÔNICAS", caps: "24 - 26" },
-        { dia: 31, livro: "1 CRÔNICAS", caps: "27 - 29" }
-      ],
-      "JUNHO": [
-        { dia: 1, livro: "ESTER", caps: "1 - 3" }, { dia: 2, livro: "ESTER", caps: "4 - 7" },
-        { dia: 3, livro: "ESTER", caps: "8 - 10" }, { dia: 4, livro: "AGEU / ZACARIAS", caps: "1 - 2 / 1 - 2" },
-        { dia: 5, livro: "ZACARIAS", caps: "3 - 6" }, { dia: 6, livro: "ZACARIAS", caps: "7 - 10" },
-        { dia: 7, livro: "ZACARIAS", caps: "11 - 14" }, { dia: 8, livro: "ESDRAS", caps: "5 - 7" },
-        { dia: 9, livro: "ESDRAS", caps: "8 - 10" }, { dia: 10, livro: "NEEMIAS", caps: "1 - 3" },
-        { dia: 11, livro: "NEEMIAS", caps: "4 - 6" }, { dia: 12, livro: "NEEMIAS", caps: "7 - 9" },
-        { dia: 13, livro: "NEEMIAS", caps: "10 - 13" }, { dia: 14, livro: "MALAQUIAS", caps: "1 - 4" },
-        { dia: 15, livro: "MATEUS", caps: "1 - 4" }, { dia: 16, livro: "MATEUS", caps: "5 - 7" },
-        { dia: 17, livro: "MATEUS", caps: "8 - 11" }, { dia: 18, livro: "MATEUS", caps: "12 - 15" },
-        { dia: 19, livro: "MATEUS", caps: "16 - 19" }, { dia: 20, livro: "MATEUS", caps: "20 - 22" },
-        { dia: 21, livro: "MATEUS", caps: "23 - 25" }, { dia: 22, livro: "MATEUS", caps: "26 - 28" },
-        { dia: 23, livro: "MARCOS", caps: "1 - 3" }, { dia: 24, livro: "MARCOS", caps: "4 - 6" },
-        { dia: 25, livro: "MARCOS", caps: "7 - 10" }, { dia: 26, livro: "MARCOS", caps: "11 - 13" },
-        { dia: 27, livro: "MARCOS", caps: "14 - 16" }, { dia: 28, livro: "LUCAS", caps: "1 - 3" },
-        { dia: 29, livro: "LUCAS", caps: "4 - 6" }, { dia: 30, livro: "LUCAS", caps: "7 - 9" }
-      ],
-      "JULHO": [
-        { dia: 1, livro: "LUCAS", caps: "10 - 13" }, { dia: 2, livro: "LUCAS", caps: "14 - 17" },
-        { dia: 3, livro: "LUCAS", caps: "18 - 21" }, { dia: 4, livro: "LUCAS", caps: "22 - 24" },
-        { dia: 5, livro: "JOÃO", caps: "1 - 3" }, { dia: 6, livro: "JOÃO", caps: "4 - 6" },
-        { dia: 7, livro: "JOÃO", caps: "7 - 10" }, { dia: 8, livro: "JOÃO", caps: "11 - 13" },
-        { dia: 9, livro: "JOÃO", caps: "14 - 17" }, { dia: 10, livro: "JOÃO", caps: "18 - 21" },
-        { dia: 11, livro: "ATOS", caps: "1 - 2" }, { dia: 12, livro: "ATOS", caps: "3 - 5" },
-        { dia: 13, livro: "ATOS", caps: "6 - 9" }, { dia: 14, livro: "ATOS", caps: "10 - 12" },
-        { dia: 15, livro: "ATOS", caps: "13 - 14" }, { dia: 16, livro: "TIAGO", caps: "1 - 2" },
-        { dia: 17, livro: "TIAGO", caps: "3 - 5" }, { dia: 18, livro: "GÁLATAS", caps: "1 - 3" },
-        { dia: 19, livro: "GÁLATAS", caps: "4 - 6" }, { dia: 20, livro: "ATOS", caps: "15 - 18:11" },
-        { dia: 21, livro: "1 & 2 TESSALONICENSES", caps: "1 - 5 / 1 - 3" },
-        { dia: 22, livro: "ATOS", caps: "18:12 - 19:10" }, { dia: 23, livro: "1 CORÍNTIOS", caps: "1 - 4" },
-        { dia: 24, livro: "1 CORÍNTIOS", caps: "5 - 8" }, { dia: 25, livro: "1 CORÍNTIOS", caps: "9 - 12" },
-        { dia: 26, livro: "1 CORÍNTIOS / ATOS", caps: "13 - 16 / 19:11 - 20:1" },
-        { dia: 27, livro: "2 CORÍNTIOS", caps: "1 - 3" }, { dia: 28, livro: "2 CORÍNTIOS", caps: "4 - 6" },
-        { dia: 29, livro: "2 CORÍNTIOS", caps: "7 - 9" }, { dia: 30, livro: "2 CORÍNTIOS / ATOS", caps: "10 - 13 / 20:2" },
-        { dia: 31, livro: "ROMANOS", caps: "1 - 4" }
-      ],
-      "AGOSTO": [
-        { dia: 1, livro: "ROMANOS", caps: "5 - 8" }, { dia: 2, livro: "ROMANOS", caps: "9 - 11" },
-        { dia: 3, livro: "ROMANOS", caps: "12 - 16" }, { dia: 4, livro: "ATOS", caps: "20:3 - 22" },
-        { dia: 5, livro: "ATOS", caps: "23 - 25" }, { dia: 6, livro: "ATOS", caps: "26 - 28" },
-        { dia: 7, livro: "EFÉSIOS", caps: "1 - 3" }, { dia: 8, livro: "EFÉSIOS", caps: "4 - 6" },
-        { dia: 9, livro: "FILIPENSES", caps: "1 - 4" }, { dia: 10, livro: "COLOSSENSES", caps: "1 - 4" },
-        { dia: 11, livro: "HEBREUS", caps: "1 - 4" }, { dia: 12, livro: "HEBREUS", caps: "5 - 7" },
-        { dia: 13, livro: "HEBREUS", caps: "8 - 10" }, { dia: 14, livro: "HEBREUS / FILÊMON", caps: "11 - 13 / 1" },
-        { dia: 15, livro: "1 PEDRO", caps: "1 - 2" }, { dia: 16, livro: "1 PEDRO", caps: "3 - 5" },
-        { dia: 17, livro: "2 PEDRO", caps: "1 - 3" }, { dia: 18, livro: "1 TIMÓTEO", caps: "1 - 3" },
-        { dia: 19, livro: "1 TIMÓTEO", caps: "4 - 6" }, { dia: 20, livro: "TITO", caps: "1 - 3" },
-        { dia: 21, livro: "2 TIMÓTEO", caps: "1 - 4" }, { dia: 22, livro: "1 JOÃO", caps: "1 - 2" },
-        { dia: 23, livro: "1 & 2 JOÃO", caps: "3 - 5 / 1" }, { dia: 24, livro: "3 JOÃO / JUDAS", caps: "1 / 1" },
-        { dia: 25, livro: "APOCALIPSE", caps: "1 - 3" }, { dia: 26, livro: "APOCALIPSE", caps: "4 - 6" },
-        { dia: 27, livro: "APOCALIPSE", caps: "7 - 9" }, { dia: 28, livro: "APOCALIPSE", caps: "10 - 12" },
-        { dia: 29, livro: "APOCALIPSE", caps: "13 - 15" }, { dia: 30, livro: "APOCALIPSE", caps: "16 - 18" },
-        { dia: 31, livro: "APOCALIPSE", caps: "19 - 22" }
-      ],
-      "SETEMBRO": [
-        { dia: 1, livro: "GÊNESIS", caps: "1 - 2" }, { dia: 2, livro: "GÊNESIS", caps: "3 - 5" },
-        { dia: 3, livro: "GÊNESIS", caps: "6 - 9" }, { dia: 4, livro: "GÊNESIS", caps: "10 - 11" },
-        { dia: 5, livro: "GÊNESIS", caps: "12 - 15" }, { dia: 6, livro: "GÊNESIS", caps: "16 - 19" },
-        { dia: 7, livro: "GÊNESIS", caps: "20 - 22" }, { dia: 8, livro: "GÊNESIS", caps: "23 - 26" },
-        { dia: 9, livro: "GÊNESIS", caps: "27 - 29" }, { dia: 10, livro: "GÊNESIS", caps: "30 - 32" },
-        { dia: 11, livro: "GÊNESIS", caps: "33 - 36" }, { dia: 12, livro: "GÊNESIS", caps: "37 - 39" },
-        { dia: 13, livro: "GÊNESIS", caps: "40 - 42" }, { dia: 14, livro: "GÊNESIS", caps: "43 - 46" },
-        { dia: 15, livro: "GÊNESIS", caps: "47 - 50" }, { dia: 16, livro: "JÓ", caps: "1 - 4" },
-        { dia: 17, livro: "JÓ", caps: "5 - 7" }, { dia: 18, livro: "JÓ", caps: "8 - 10" },
-        { dia: 19, livro: "JÓ", caps: "11 - 13" }, { dia: 20, livro: "JÓ", caps: "14 - 17" },
-        { dia: 21, livro: "JÓ", caps: "18 - 20" }, { dia: 22, livro: "JÓ", caps: "21 - 24" },
-        { dia: 23, livro: "JÓ", caps: "25 - 27" }, { dia: 24, livro: "JÓ", caps: "28 - 31" },
-        { dia: 25, livro: "JÓ", caps: "32 - 34" }, { dia: 26, livro: "JÓ", caps: "35 - 37" },
-        { dia: 27, livro: "JÓ", caps: "38 - 42" }, { dia: 28, livro: "ÊXODO", caps: "1 - 4" },
-        { dia: 29, livro: "ÊXODO", caps: "5 - 7" }, { dia: 30, livro: "ÊXODO", caps: "8 - 10" }
-      ],
-      "OUTUBRO": [
-        { dia: 1, livro: "ÊXODO", caps: "11 - 13" }, { dia: 2, livro: "ÊXODO", caps: "14 - 17" },
-        { dia: 3, livro: "ÊXODO", caps: "18 - 20" }, { dia: 4, livro: "ÊXODO", caps: "21 - 24" },
-        { dia: 5, livro: "ÊXODO", caps: "25 - 27" }, { dia: 6, livro: "ÊXODO", caps: "28 - 31" },
-        { dia: 7, livro: "ÊXODO", caps: "32 - 34" }, { dia: 8, livro: "ÊXODO", caps: "35 - 37" },
-        { dia: 9, livro: "ÊXODO", caps: "38 - 40" }, { dia: 10, livro: "LEVÍTICO", caps: "1 - 4" },
-        { dia: 11, livro: "LEVÍTICO", caps: "5 - 7" }, { dia: 12, livro: "LEVÍTICO", caps: "8 - 10" },
-        { dia: 13, livro: "LEVÍTICO", caps: "11 - 13" }, { dia: 14, livro: "LEVÍTICO", caps: "14 - 16" },
-        { dia: 15, livro: "LEVÍTICO", caps: "17 - 19" }, { dia: 16, livro: "LEVÍTICO", caps: "20 - 23" },
-        { dia: 17, livro: "LEVÍTICO", caps: "24 - 27" }, { dia: 18, livro: "NÚMEROS", caps: "1 - 3" },
-        { dia: 19, livro: "NÚMEROS", caps: "4 - 6" }, { dia: 20, livro: "NÚMEROS", caps: "7 - 10" },
-        { dia: 21, livro: "NÚMEROS", caps: "11 - 14" }, { dia: 22, livro: "NÚMEROS", caps: "15 - 17" },
-        { dia: 23, livro: "NÚMEROS", caps: "18 - 20" }, { dia: 24, livro: "NÚMEROS", caps: "21 - 24" },
-        { dia: 25, livro: "NÚMEROS", caps: "25 - 27" }, { dia: 26, livro: "NÚMEROS", caps: "28 - 30" },
-        { dia: 27, livro: "NÚMEROS", caps: "31 - 33" }, { dia: 28, livro: "NÚMEROS", caps: "34 - 36" },
-        { dia: 29, livro: "DEUTERONÔMIO", caps: "1 - 3" }, { dia: 30, livro: "DEUTERONÔMIO", caps: "4 - 6" },
-        { dia: 31, livro: "DEUTERONÔMIO", caps: "7 - 9" }
-      ],
-      "NOVEMBRO": [
-        { dia: 1, livro: "DEUTERONÔMIO", caps: "10 - 12" }, { dia: 2, livro: "DEUTERONÔMIO", caps: "13 - 16" },
-        { dia: 3, livro: "DEUTERONÔMIO", caps: "17 - 19" }, { dia: 4, livro: "DEUTERONÔMIO", caps: "20 - 22" },
-        { dia: 5, livro: "DEUTERONÔMIO", caps: "23 - 25" }, { dia: 6, livro: "DEUTERONÔMIO", caps: "26 - 28" },
-        { dia: 7, livro: "DEUTERONÔMIO", caps: "29 - 31" }, { dia: 8, livro: "DEUTERONÔMIO", caps: "32 - 34" },
-        { dia: 9, livro: "JOSUÉ", caps: "1 - 3" }, { dia: 10, livro: "JOSUÉ", caps: "4 - 6" },
-        { dia: 11, livro: "JOSUÉ", caps: "7 - 9" }, { dia: 12, livro: "JOSUÉ", caps: "10 - 12" },
-        { dia: 13, livro: "JOSUÉ", caps: "13 - 15" }, { dia: 14, livro: "JOSUÉ", caps: "16 - 18" },
-        { dia: 15, livro: "JOSUÉ", caps: "19 - 21" }, { dia: 16, livro: "JOSUÉ", caps: "22 - 24" },
-        { dia: 17, livro: "JUÍZES", caps: "1 - 4" }, { dia: 18, livro: "JUÍZES", caps: "5 - 8" },
-        { dia: 19, livro: "JUÍZES", caps: "9 - 12" }, { dia: 20, livro: "JUÍZES", caps: "13 - 15" },
-        { dia: 21, livro: "JUÍZES", caps: "16 - 18" }, { dia: 22, livro: "JUÍZES", caps: "19 - 21" },
-        { dia: 23, livro: "RUTE", caps: "1 - 4" }, { dia: 24, livro: "1 SAMUEL", caps: "1 - 3" },
-        { dia: 25, livro: "1 SAMUEL", caps: "4 - 7" }, { dia: 26, livro: "1 SAMUEL", caps: "8 - 10" },
-        { dia: 27, livro: "1 SAMUEL", caps: "11 - 13" }, { dia: 28, livro: "1 SAMUEL", caps: "14 - 16" },
-        { dia: 29, livro: "1 SAMUEL", caps: "17 - 20" }, { dia: 30, livro: "1 SAMUEL", caps: "21 - 24" }
-      ],
-      "DEZEMBRO": [
-        { dia: 1, livro: "1 SAMUEL", caps: "25 - 28" }, { dia: 2, livro: "1 SAMUEL", caps: "29 - 31" },
-        { dia: 3, livro: "2 SAMUEL", caps: "1 - 4" }, { dia: 4, livro: "2 SAMUEL", caps: "5 - 8" },
-        { dia: 5, livro: "2 SAMUEL", caps: "9 - 12" }, { dia: 6, livro: "2 SAMUEL", caps: "13 - 15" },
-        { dia: 7, livro: "2 SAMUEL", caps: "16 - 18" }, { dia: 8, livro: "2 SAMUEL", caps: "19 - 21" },
-        { dia: 9, livro: "2 SAMUEL", caps: "22 - 24" }, { dia: 10, livro: "SALMOS", caps: "1 - 3" },
-        { dia: 11, livro: "SALMOS", caps: "4 - 6" }, { dia: 12, livro: "SALMOS", caps: "7 - 9" },
-        { dia: 13, livro: "SALMOS", caps: "10 - 12" }, { dia: 14, livro: "SALMOS", caps: "13 - 15" },
-        { dia: 15, livro: "SALMOS", caps: "16 - 18" }, { dia: 16, livro: "SALMOS", caps: "19 - 21" },
-        { dia: 17, livro: "SALMOS", caps: "22 - 24" }, { dia: 18, livro: "SALMOS", caps: "25 - 27" },
-        { dia: 19, livro: "SALMOS", caps: "28 - 30" }, { dia: 20, livro: "SALMOS", caps: "31 - 33" },
-        { dia: 21, livro: "SALMOS", caps: "34 - 36" }, { dia: 22, livro: "SALMOS", caps: "37 - 39" },
-        { dia: 23, livro: "SALMOS", caps: "40 - 42" }, { dia: 24, livro: "SALMOS", caps: "43 - 45" },
-        { dia: 25, livro: "SALMOS", caps: "46 - 48" }, { dia: 26, livro: "SALMOS", caps: "49 - 51" },
-        { dia: 27, livro: "SALMOS", caps: "52 - 54" }, { dia: 28, livro: "SALMOS", caps: "55 - 57" },
-        { dia: 29, livro: "SALMOS", caps: "58 - 60" }, { dia: 30, livro: "SALMOS", caps: "61 - 63" },
-        { dia: 31, livro: "SALMOS", caps: "64 - 66" }
-      ]
-    };
-
-    // 📍 RENDERIZA RESUMO "ONDE PAREI?"
-    function renderFreeSummary() {
-      const container = document.getElementById('free-summary');
-      if (!container) return;
-      if (!freeReadings || freeReadings.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Nenhuma leitura registrada ainda.</p>';
-        return;
-      }
-      const byBook = {};
-      freeReadings.forEach(r => {
-        if (!r.book || !r.date) return;
-        const bookKey = r.book.trim().toLowerCase();
-        const current = byBook[bookKey];
-        const dateCurrent = new Date(r.date);
-        const dateLast = current ? new Date(current.date) : new Date(0);
-        if (!current || dateCurrent > dateLast) byBook[bookKey] = r;
-      });
-      const sorted = Object.values(byBook).sort((a, b) => new Date(b.date) - new Date(a.date));
-      if (sorted.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Nenhuma leitura válida encontrada.</p>';
-        return;
-      }
-      container.innerHTML = sorted.map(r => {
-        let lastCh = r.chapter;
-        if (lastCh === undefined && r.chapters) {
-          const match = String(r.chapters).match(/^\d+/);
-          lastCh = match ? parseInt(match[0]) : 1;
-        }
-        if (lastCh === undefined || isNaN(lastCh)) lastCh = 1;
-        const nextCh = lastCh + 1;
-        const safeBook = r.book.replace(/'/g, "\\'");
-        const versesText = r.verses ? `• Vs. ${r.verses}` : (r.chapters && !r.chapter ? `• ${r.chapters}` : '');
-        return `<div class="free-card" style="margin-bottom:6px;"><div class="free-info"><h4 style="font-size:0.95rem;">${r.book}</h4><p style="font-size:0.8rem;">📖 Parou no Cap. ${lastCh} ${versesText} | 📅 ${formatDate(r.date)}</p></div><button class="icon-btn" style="background:var(--primary);color:white;font-weight:600;" onclick="window.continueReading('${safeBook}', ${nextCh})" title="Continuar leitura">➡️</button></div>`;
-      }).join('');
-    }
-
-    // ➡️ ABRE FORMULÁRIO JÁ PREENCHIDO
-    window.continueReading = (book, nextChapter) => {
-      document.getElementById('f-book').value = book;
-      document.getElementById('f-chapter').value = nextChapter;
-      document.getElementById('f-verses').value = '';
-      document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-      openFreeModal();
-    };
-
-    // ❓ MODAL WIKI: COMO USAR
-    window.openWikiModal = () => { document.getElementById('wiki-modal').classList.add('open'); };
-    window.closeWikiModal = () => { document.getElementById('wiki-modal').classList.remove('open'); };
-    document.getElementById('wiki-modal').onclick = (e) => { if (e.target === e.currentTarget) closeWikiModal(); };
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeWikiModal(); closeModal(); } });
-
-
-    // 🗓️ SELETOR
-    function setupMonthSelector() {
-      const sel = document.getElementById('month-selector');
-      sel.innerHTML = '';
-      Object.keys(PLAN_DATA).forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m; opt.textContent = m;
-        sel.appendChild(opt);
-      });
-      sel.value = currentMonth;
-      sel.addEventListener('change', (e) => { currentMonth = e.target.value; renderPlan(); });
-    }
-
-    // 💾 PROGRESSO
-    function loadPlanProgress() {
-      onSnapshot(doc(db, "users", currentUserId, "planProgress", "data"), (snap) => {
-        planProgress = snap.exists() ? snap.data() : {};
-        updateCheckmarks();
-      });
-    }
-
-    // 🎨 RENDER
-    function renderPlan() {
-      const container = document.getElementById('plan-container');
-      const data = PLAN_DATA[currentMonth] || [];
-      const fragment = document.createDocumentFragment();
-      data.forEach(day => {
-        const key = `${currentMonth}-${day.dia}`;
-        const done = !!planProgress[key];
-        const el = document.createElement('div');
-        el.className = `plan-day ${done ? 'done' : ''}`;
-        el.dataset.key = key;
-        el.innerHTML = `<button class="day-check ${done ? 'checked' : ''}">${done ? '✓' : ''}</button><div class="day-text"><div class="day-label">Dia ${day.dia}</div><div class="day-content">${day.livro} • Cap. ${day.caps}</div></div>`;
-        el.querySelector('button').addEventListener('click', () => togglePlanDay(key));
-        fragment.appendChild(el);
-      });
-      container.innerHTML = '';
-      container.appendChild(fragment);
-      updateProgressBar(data.length, data.filter(d => planProgress[`${currentMonth}-${d.dia}`]).length);
-    }
-
-    function updateCheckmarks() {
-      document.querySelectorAll('.plan-day').forEach(el => {
-        const key = el.dataset.key;
-        const done = !!planProgress[key];
-        el.className = `plan-day ${done ? 'done' : ''}`;
-        const btn = el.querySelector('.day-check');
-        btn.className = `day-check ${done ? 'checked' : ''}`;
-        btn.textContent = done ? '✓' : '';
-      });
-      const data = PLAN_DATA[currentMonth] || [];
-      updateProgressBar(data.length, data.filter(d => planProgress[`${currentMonth}-${d.dia}`]).length);
-    }
-
-    function updateProgressBar(total, completed) {
-      const pct = total ? Math.round((completed / total) * 100) : 0;
-      document.getElementById('month-label').textContent = currentMonth;
-      document.getElementById('month-pct').textContent = `${pct}%`;
-      document.getElementById('month-bar').style.width = `${pct}%`;
-    }
-
-    // ✅ MARCAR DIA
-    async function togglePlanDay(key) {
-      if (!currentUserId) { showToast('⏳ Conectando...'); return; }
-      const newVal = !planProgress[key];
-      planProgress[key] = newVal;
-      updateCheckmarks();
-      try {
-        await setDoc(doc(db, "users", currentUserId, "planProgress", "data"), { [key]: newVal }, { merge: true });
-        showToast(newVal ? '✅ Marcado!' : '↩️ Desmarcado');
-      } catch (e) {
-        console.error(e);
-        showToast('❌ Erro ao salvar.');
-        planProgress[key] = !newVal;
-        updateCheckmarks();
-      }
-    }
-
-    // 📖 LEITURAS LIVRES
-    function loadFreeReadings() {
-      if (!currentUserId) { console.log("Aguardando login..."); return; }
-      console.log("Carregando leituras para:", currentUserId);
-      const q = query(collection(db, "users/" + currentUserId + "/readings"), orderBy("date", "desc"));
-      onSnapshot(q, (snap) => {
-        console.log("Documentos retornados:", snap.docs.length);
-        freeReadings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderFreeReadings();
-        renderFreeSummary();
-      }, (err) => { console.error("Erro ao buscar:", err.code, err.message); });
-    }
-
-    function renderFreeReadings() {
-      const container = document.getElementById('free-container');
-      if (!container) return;
-      if (!freeReadings || freeReadings.length === 0) {
-        container.innerHTML = '<p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p>';
-        return;
-      }
-      container.innerHTML = freeReadings.map(r => `<div class="free-card"><div class="free-info"><h4>${r.book}</h4><p>📖 Cap. ${r.chapter ?? r.chapters} ${r.verses ? `• Vs. ${r.verses}` : ''} | 📅 ${formatDate(r.date)}</p></div><button class="icon-btn delete" onclick="deleteFree('${r.id}')">🗑️</button></div>`).join('');
-    }
-
-    window.deleteFree = async (id) => {
-      if(confirm('Excluir esta leitura?')) {
-        await deleteDoc(doc(db, `users/${currentUserId}/readings/${id}`));
-        showToast('🗑️ Removida');
-      }
-    };
-
-    document.getElementById('free-form').onsubmit = async (e) => {
-      e.preventDefault();
-      await addDoc(collection(db, `users/${currentUserId}/readings`), {
-        book: document.getElementById('f-book').value.trim(),
-        chapter: parseInt(document.getElementById('f-chapter').value),
-        verses: document.getElementById('f-verses').value.trim() || "",
-        date: document.getElementById('f-date').value,
-        createdAt: serverTimestamp()
-      });
-      closeModal(); e.target.reset();
-      showToast('📖 Leitura registrada!');
+      "JANEIRO": [ { dia: 1, livro: "SALMOS", caps: "67 - 69" }, { dia: 2, livro: "SALMOS", caps: "70 - 72" }, { dia: 3, livro: "SALMOS", caps: "73 - 75" }, { dia: 4, livro: "SALMOS", caps: "76 - 78" }, { dia: 5, livro: "SALMOS", caps: "79 - 81" }, { dia: 6, livro: "SALMOS", caps: "82 - 84" }, { dia: 7, livro: "SALMOS", caps: "85 - 87" }, { dia: 8, livro: "SALMOS", caps: "88 - 90" }, { dia: 9, livro: "SALMOS", caps: "91 - 93" }, { dia: 10, livro: "SALMOS", caps: "94 - 96" }, { dia: 11, livro: "SALMOS", caps: "97 - 99" }, { dia: 12, livro: "SALMOS", caps: "100 - 102" }, { dia: 13, livro: "SALMOS", caps: "103 - 105" }, { dia: 14, livro: "SALMOS", caps: "106 - 108" }, { dia: 15, livro: "SALMOS", caps: "109 - 111" }, { dia: 16, livro: "SALMOS", caps: "112 - 114" }, { dia: 17, livro: "SALMOS", caps: "115 - 118" }, { dia: 18, livro: "SALMOS", caps: "119" }, { dia: 19, livro: "SALMOS", caps: "120 - 123" }, { dia: 20, livro: "SALMOS", caps: "124 - 126" }, { dia: 21, livro: "SALMOS", caps: "127 - 129" }, { dia: 22, livro: "SALMOS", caps: "130 - 132" }, { dia: 23, livro: "SALMOS", caps: "133 - 135" }, { dia: 24, livro: "SALMOS", caps: "136 - 138" }, { dia: 25, livro: "SALMOS", caps: "139 - 141" }, { dia: 26, livro: "SALMOS", caps: "142 - 144" }, { dia: 27, livro: "SALMOS", caps: "145 - 147" }, { dia: 28, livro: "SALMOS", caps: "148 - 150" }, { dia: 29, livro: "1 REIS", caps: "1 - 4" }, { dia: 30, livro: "PROVÉRBIOS", caps: "1 - 3" }, { dia: 31, livro: "PROVÉRBIOS", caps: "4 - 7" } ],
+      "FEVEREIRO": [ { dia: 1, livro: "PROVÉRBIOS", caps: "8 - 11" }, { dia: 2, livro: "PROVÉRBIOS", caps: "12 - 14" }, { dia: 3, livro: "PROVÉRBIOS", caps: "15 - 18" }, { dia: 4, livro: "PROVÉRBIOS", caps: "19 - 21" }, { dia: 5, livro: "PROVÉRBIOS", caps: "22 - 24" }, { dia: 6, livro: "PROVÉRBIOS", caps: "25 - 26" }, { dia: 7, livro: "PROVÉRBIOS", caps: "27 - 31" }, { dia: 8, livro: "ECLESIASTES", caps: "1 - 3" }, { dia: 9, livro: "ECLESIASTES", caps: "4 - 6" }, { dia: 10, livro: "ECLESIASTES", caps: "7 - 9" }, { dia: 11, livro: "ECLESIASTES", caps: "10 - 12" }, { dia: 12, livro: "CÂNT. SALOMÃO", caps: "1 - 4" }, { dia: 13, livro: "CÂNT. SALOMÃO", caps: "5 - 8" }, { dia: 14, livro: "1 REIS", caps: "5 - 7" }, { dia: 15, livro: "1 REIS", caps: "8 - 10" }, { dia: 16, livro: "1 REIS", caps: "11 - 13" }, { dia: 17, livro: "1 REIS", caps: "14 - 16" }, { dia: 18, livro: "1 REIS", caps: "17 - 19" }, { dia: 19, livro: "1 REIS", caps: "20 - 22" }, { dia: 20, livro: "2 REIS", caps: "1 - 3" }, { dia: 21, livro: "2 REIS", caps: "4 - 6" }, { dia: 22, livro: "2 REIS", caps: "7 - 10" }, { dia: 23, livro: "2 REIS", caps: "11 - 14:20" }, { dia: 24, livro: "JONAS", caps: "1 - 4" }, { dia: 25, livro: "2 REIS / JOEL", caps: "14:21 - 25 / 1 - 3" }, { dia: 26, livro: "2 REIS / AMÓS", caps: "14:26 - 29 / 1 - 3" }, { dia: 27, livro: "AMÓS", caps: "4 - 6" }, { dia: 28, livro: "AMÓS", caps: "7 - 9" } ],
+      "MARÇO": [ { dia: 1, livro: "2 REIS", caps: "15 - 17" }, { dia: 2, livro: "OSÉIAS", caps: "1 - 4" }, { dia: 3, livro: "OSÉIAS", caps: "5 - 7" }, { dia: 4, livro: "OSÉIAS", caps: "8 - 10" }, { dia: 5, livro: "OSÉIAS", caps: "11 - 14" }, { dia: 6, livro: "2 REIS", caps: "18 - 19" }, { dia: 7, livro: "ISAÍAS", caps: "1 - 3" }, { dia: 8, livro: "ISAÍAS", caps: "4 - 6" }, { dia: 9, livro: "ISAÍAS", caps: "7 - 9" }, { dia: 10, livro: "ISAÍAS", caps: "10 - 12" }, { dia: 11, livro: "ISAÍAS", caps: "13 - 15" }, { dia: 12, livro: "ISAÍAS", caps: "16 - 18" }, { dia: 13, livro: "ISAÍAS", caps: "19 - 21" }, { dia: 14, livro: "ISAÍAS", caps: "22 - 24" }, { dia: 15, livro: "ISAÍAS", caps: "25 - 27" }, { dia: 16, livro: "ISAÍAS", caps: "28 - 30" }, { dia: 17, livro: "ISAÍAS", caps: "31 - 33" }, { dia: 18, livro: "ISAÍAS", caps: "34 - 36" }, { dia: 19, livro: "ISAÍAS", caps: "37 - 39" }, { dia: 20, livro: "ISAÍAS", caps: "40 - 42" }, { dia: 21, livro: "ISAÍAS", caps: "43 - 45" }, { dia: 22, livro: "ISAÍAS", caps: "46 - 48" }, { dia: 23, livro: "ISAÍAS", caps: "49 - 51" }, { dia: 24, livro: "ISAÍAS", caps: "52 - 54" }, { dia: 25, livro: "ISAÍAS", caps: "55 - 57" }, { dia: 26, livro: "ISAÍAS", caps: "58 - 60" }, { dia: 27, livro: "ISAÍAS", caps: "61 - 63" }, { dia: 28, livro: "ISAÍAS", caps: "64 - 66" }, { dia: 29, livro: "MIQUÉIAS", caps: "1 - 4" }, { dia: 30, livro: "MIQUÉIAS", caps: "5 - 7" }, { dia: 31, livro: "SOFONIAS", caps: "1 - 3" } ],
+      "ABRIL": [ { dia: 1, livro: "2 REIS", caps: "20 - 21" }, { dia: 2, livro: "NAUM", caps: "1 - 3" }, { dia: 3, livro: "HABACUQUE", caps: "1 - 3" }, { dia: 4, livro: "2 REIS / OBADIAS", caps: "22 - 25 / 1" }, { dia: 5, livro: "JEREMIAS", caps: "1 - 2" }, { dia: 6, livro: "JEREMIAS", caps: "3 - 5" }, { dia: 7, livro: "JEREMIAS", caps: "6 - 8" }, { dia: 8, livro: "JEREMIAS", caps: "9 - 12" }, { dia: 9, livro: "JEREMIAS", caps: "13 - 16" }, { dia: 10, livro: "JEREMIAS", caps: "17 - 20" }, { dia: 11, livro: "JEREMIAS", caps: "21 - 23" }, { dia: 12, livro: "JEREMIAS", caps: "24 - 26" }, { dia: 13, livro: "JEREMIAS", caps: "27 - 29" }, { dia: 14, livro: "JEREMIAS", caps: "30 - 32" }, { dia: 15, livro: "JEREMIAS", caps: "33 - 36" }, { dia: 16, livro: "JEREMIAS", caps: "37 - 39" }, { dia: 17, livro: "LAMENTAÇÕES", caps: "1 - 5" }, { dia: 18, livro: "JEREMIAS", caps: "40 - 42" }, { dia: 19, livro: "JEREMIAS", caps: "43 - 46" }, { dia: 20, livro: "JEREMIAS", caps: "47 - 49" }, { dia: 21, livro: "JEREMIAS", caps: "50 - 52" }, { dia: 22, livro: "EZEQUIEL", caps: "1 - 3" }, { dia: 23, livro: "EZEQUIEL", caps: "4 - 7" }, { dia: 24, livro: "EZEQUIEL", caps: "8 - 11" }, { dia: 25, livro: "EZEQUIEL", caps: "12 - 14" }, { dia: 26, livro: "EZEQUIEL", caps: "15 - 18" }, { dia: 27, livro: "EZEQUIEL", caps: "19 - 21" }, { dia: 28, livro: "EZEQUIEL", caps: "22 - 24" }, { dia: 29, livro: "EZEQUIEL", caps: "25 - 27" }, { dia: 30, livro: "EZEQUIEL", caps: "28 - 30" } ],
+      "MAIO": [ { dia: 1, livro: "EZEQUIEL", caps: "31 - 33" }, { dia: 2, livro: "EZEQUIEL", caps: "34 - 36" }, { dia: 3, livro: "EZEQUIEL", caps: "37 - 39" }, { dia: 4, livro: "EZEQUIEL", caps: "40 - 42" }, { dia: 5, livro: "EZEQUIEL", caps: "43 - 45" }, { dia: 6, livro: "EZEQUIEL", caps: "46 - 48" }, { dia: 7, livro: "DANIEL", caps: "1 - 3" }, { dia: 8, livro: "DANIEL", caps: "4 - 6" }, { dia: 9, livro: "DANIEL", caps: "7 - 9" }, { dia: 10, livro: "DANIEL", caps: "10 - 12" }, { dia: 11, livro: "ESDRAS", caps: "1 - 4" }, { dia: 12, livro: "2 CRÔNICAS", caps: "1 - 3" }, { dia: 13, livro: "2 CRÔNICAS", caps: "4 - 6" }, { dia: 14, livro: "2 CRÔNICAS", caps: "7 - 9" }, { dia: 15, livro: "2 CRÔNICAS", caps: "10 - 13" }, { dia: 16, livro: "2 CRÔNICAS", caps: "14 - 16" }, { dia: 17, livro: "2 CRÔNICAS", caps: "17 - 19" }, { dia: 18, livro: "2 CRÔNICAS", caps: "20 - 22" }, { dia: 19, livro: "2 CRÔNICAS", caps: "23 - 25" }, { dia: 20, livro: "2 CRÔNICAS", caps: "26 - 29" }, { dia: 21, livro: "2 CRÔNICAS", caps: "30 - 32" }, { dia: 22, livro: "2 CRÔNICAS", caps: "33 - 36" }, { dia: 23, livro: "1 CRÔNICAS", caps: "1 - 3" }, { dia: 24, livro: "1 CRÔNICAS", caps: "4 - 6" }, { dia: 25, livro: "1 CRÔNICAS", caps: "7 - 9" }, { dia: 26, livro: "1 CRÔNICAS", caps: "10 - 13" }, { dia: 27, livro: "1 CRÔNICAS", caps: "14 - 16" }, { dia: 28, livro: "1 CRÔNICAS", caps: "17 - 19" }, { dia: 29, livro: "1 CRÔNICAS", caps: "20 - 23" }, { dia: 30, livro: "1 CRÔNICAS", caps: "24 - 26" }, { dia: 31, livro: "1 CRÔNICAS", caps: "27 - 29" } ],
+      "JUNHO": [ { dia: 1, livro: "ESTER", caps: "1 - 3" }, { dia: 2, livro: "ESTER", caps: "4 - 7" }, { dia: 3, livro: "ESTER", caps: "8 - 10" }, { dia: 4, livro: "AGEU / ZACARIAS", caps: "1 - 2 / 1 - 2" }, { dia: 5, livro: "ZACARIAS", caps: "3 - 6" }, { dia: 6, livro: "ZACARIAS", caps: "7 - 10" }, { dia: 7, livro: "ZACARIAS", caps: "11 - 14" }, { dia: 8, livro: "ESDRAS", caps: "5 - 7" }, { dia: 9, livro: "ESDRAS", caps: "8 - 10" }, { dia: 10, livro: "NEEMIAS", caps: "1 - 3" }, { dia: 11, livro: "NEEMIAS", caps: "4 - 6" }, { dia: 12, livro: "NEEMIAS", caps: "7 - 9" }, { dia: 13, livro: "NEEMIAS", caps: "10 - 13" }, { dia: 14, livro: "MALAQUIAS", caps: "1 - 4" }, { dia: 15, livro: "MATEUS", caps: "1 - 4" }, { dia: 16, livro: "MATEUS", caps: "5 - 7" }, { dia: 17, livro: "MATEUS", caps: "8 - 11" }, { dia: 18, livro: "MATEUS", caps: "12 - 15" }, { dia: 19, livro: "MATEUS", caps: "16 - 19" }, { dia: 20, livro: "MATEUS", caps: "20 - 22" }, { dia: 21, livro: "MATEUS", caps: "23 - 25" }, { dia: 22, livro: "MATEUS", caps: "26 - 28" }, { dia: 23, livro: "MARCOS", caps: "1 - 3" }, { dia: 24, livro: "MARCOS", caps: "4 - 6" }, { dia: 25, livro: "MARCOS", caps: "7 - 10" }, { dia: 26, livro: "MARCOS", caps: "11 - 13" }, { dia: 27, livro: "MARCOS", caps: "14 - 16" }, { dia: 28, livro: "LUCAS", caps: "1 - 3" }, { dia: 29, livro: "LUCAS", caps: "4 - 6" }, { dia: 30, livro: "LUCAS", caps: "7 - 9" } ],
+      "JULHO": [ { dia: 1, livro: "LUCAS", caps: "10 - 13" }, { dia: 2, livro: "LUCAS", caps: "14 - 17" }, { dia: 3, livro: "LUCAS", caps: "18 - 21" }, { dia: 4, livro: "LUCAS", caps: "22 - 24" }, { dia: 5, livro: "JOÃO", caps: "1 - 3" }, { dia: 6, livro: "JOÃO", caps: "4 - 6" }, { dia: 7, livro: "JOÃO", caps: "7 - 10" }, { dia: 8, livro: "JOÃO", caps: "11 - 13" }, { dia: 9, livro: "JOÃO", caps: "14 - 17" }, { dia: 10, livro: "JOÃO", caps: "18 - 21" }, { dia: 11, livro: "ATOS", caps: "1 - 2" }, { dia: 12, livro: "ATOS", caps: "3 - 5" }, { dia: 13, livro: "ATOS", caps: "6 - 9" }, { dia: 14, livro: "ATOS", caps: "10 - 12" }, { dia: 15, livro: "ATOS", caps: "13 - 14" }, { dia: 16, livro: "TIAGO", caps: "1 - 2" }, { dia: 17, livro: "TIAGO", caps: "3 - 5" }, { dia: 18, livro: "GÁLATAS", caps: "1 - 3" }, { dia: 19, livro: "GÁLATAS", caps: "4 - 6" }, { dia: 20, livro: "ATOS", caps: "15 - 18:11" }, { dia: 21, livro: "1 & 2 TESSALONICENSES", caps: "1 - 5 / 1 - 3" }, { dia: 22, livro: "ATOS", caps: "18:12 - 19:10" }, { dia: 23, livro: "1 CORÍNTIOS", caps: "1 - 4" }, { dia: 24, livro: "1 CORÍNTIOS", caps: "5 - 8" }, { dia: 25, livro: "1 CORÍNTIOS", caps: "9 - 12" }, { dia: 26, livro: "1 CORÍNTIOS / ATOS", caps: "13 - 16 / 19:11 - 20:1" }, { dia: 27, livro: "2 CORÍNTIOS", caps: "1 - 3" }, { dia: 28, livro: "2 CORÍNTIOS", caps: "4 - 6" }, { dia: 29, livro: "2 CORÍNTIOS", caps: "7 - 9" }, { dia: 30, livro: "2 CORÍNTIOS / ATOS", caps: "10 - 13 / 20:2" }, { dia: 31, livro: "ROMANOS", caps: "1 - 4" } ],
+      "AGOSTO": [ { dia: 1, livro: "ROMANOS", caps: "5 - 8" }, { dia: 2, livro: "ROMANOS", caps: "9 - 11" }, { dia: 3, livro: "ROMANOS", caps: "12 - 16" }, { dia: 4, livro: "ATOS", caps: "20:3 - 22" }, { dia: 5, livro: "ATOS", caps: "23 - 25" }, { dia: 6, livro: "ATOS", caps: "26 - 28" }, { dia: 7, livro: "EFÉSIOS", caps: "1 - 3" }, { dia: 8, livro: "EFÉSIOS", caps: "4 - 6" }, { dia: 9, livro: "FILIPENSES", caps: "1 - 4" }, { dia: 10, livro: "COLOSSENSES", caps: "1 - 4" }, { dia: 11, livro: "HEBREUS", caps: "1 - 4" }, { dia: 12, livro: "HEBREUS", caps: "5 - 7" }, { dia: 13, livro: "HEBREUS", caps: "8 - 10" }, { dia: 14, livro: "HEBREUS / FILÊMON", caps: "11 - 13 / 1" }, { dia: 15, livro: "1 PEDRO", caps: "1 - 2" }, { dia: 16, livro: "1 PEDRO", caps: "3 - 5" }, { dia: 17, livro: "2 PEDRO", caps: "1 - 3" }, { dia: 18, livro: "1 TIMÓTEO", caps: "1 - 3" }, { dia: 19, livro: "1 TIMÓTEO", caps: "4 - 6" }, { dia: 20, livro: "TITO", caps: "1 - 3" }, { dia: 21, livro: "2 TIMÓTEO", caps: "1 - 4" }, { dia: 22, livro: "1 JOÃO", caps: "1 - 2" }, { dia: 23, livro: "1 & 2 JOÃO", caps: "3 - 5 / 1" }, { dia: 24, livro: "3 JOÃO / JUDAS", caps: "1 / 1" }, { dia: 25, livro: "APOCALIPSE", caps: "1 - 3" }, { dia: 26, livro: "APOCALIPSE", caps: "4 - 6" }, { dia: 27, livro: "APOCALIPSE", caps: "7 - 9" }, { dia: 28, livro: "APOCALIPSE", caps: "10 - 12" }, { dia: 29, livro: "APOCALIPSE", caps: "13 - 15" }, { dia: 30, livro: "APOCALIPSE", caps: "16 - 18" }, { dia: 31, livro: "APOCALIPSE", caps: "19 - 22" } ],
+      "SETEMBRO": [ { dia: 1, livro: "GÊNESIS", caps: "1 - 2" }, { dia: 2, livro: "GÊNESIS", caps: "3 - 5" }, { dia: 3, livro: "GÊNESIS", caps: "6 - 9" }, { dia: 4, livro: "GÊNESIS", caps: "10 - 11" }, { dia: 5, livro: "GÊNESIS", caps: "12 - 15" }, { dia: 6, livro: "GÊNESIS", caps: "16 - 19" }, { dia: 7, livro: "GÊNESIS", caps: "20 - 22" }, { dia: 8, livro: "GÊNESIS", caps: "23 - 26" }, { dia: 9, livro: "GÊNESIS", caps: "27 - 29" }, { dia: 10, livro: "GÊNESIS", caps: "30 - 32" }, { dia: 11, livro: "GÊNESIS", caps: "33 - 36" }, { dia: 12, livro: "GÊNESIS", caps: "37 - 39" }, { dia: 13, livro: "GÊNESIS", caps: "40 - 42" }, { dia: 14, livro: "GÊNESIS", caps: "43 - 46" }, { dia: 15, livro: "GÊNESIS", caps: "47 - 50" }, { dia: 16, livro: "JÓ", caps: "1 - 4" }, { dia: 17, livro: "JÓ", caps: "5 - 7" }, { dia: 18, livro: "JÓ", caps: "8 - 10" }, { dia: 19, livro: "JÓ", caps: "11 - 13" }, { dia: 20, livro: "JÓ", caps: "14 - 17" }, { dia: 21, livro: "JÓ", caps: "18 - 20" }, { dia: 22, livro: "JÓ", caps: "21 - 24" }, { dia: 23, livro: "JÓ", caps: "25 - 27" }, { dia: 24, livro: "JÓ", caps: "28 - 31" }, { dia: 25, livro: "JÓ", caps: "32 - 34" }, { dia: 26, livro: "JÓ", caps: "35 - 37" }, { dia: 27, livro: "JÓ", caps: "38 - 42" }, { dia: 28, livro: "ÊXODO", caps: "1 - 4" }, { dia: 29, livro: "ÊXODO", caps: "5 - 7" }, { dia: 30, livro: "ÊXODO", caps: "8 - 10" } ],
+      "OUTUBRO": [ { dia: 1, livro: "ÊXODO", caps: "11 - 13" }, { dia: 2, livro: "ÊXODO", caps: "14 - 17" }, { dia: 3, livro: "ÊXODO", caps: "18 - 20" }, { dia: 4, livro: "ÊXODO", caps: "21 - 24" }, { dia: 5, livro: "ÊXODO", caps: "25 - 27" }, { dia: 6, livro: "ÊXODO", caps: "28 - 31" }, { dia: 7, livro: "ÊXODO", caps: "32 - 34" }, { dia: 8, livro: "ÊXODO", caps: "35 - 37" }, { dia: 9, livro: "ÊXODO", caps: "38 - 40" }, { dia: 10, livro: "LEVÍTICO", caps: "1 - 4" }, { dia: 11, livro: "LEVÍTICO", caps: "5 - 7" }, { dia: 12, livro: "LEVÍTICO", caps: "8 - 10" }, { dia: 13, livro: "LEVÍTICO", caps: "11 - 13" }, { dia: 14, livro: "LEVÍTICO", caps: "14 - 16" }, { dia: 15, livro: "LEVÍTICO", caps: "17 - 19" }, { dia: 16, livro: "LEVÍTICO", caps: "20 - 23" }, { dia: 17, livro: "LEVÍTICO", caps: "24 - 27" }, { dia: 18, livro: "NÚMEROS", caps: "1 - 3" }, { dia: 19, livro: "NÚMEROS", caps: "4 - 6" }, { dia: 20, livro: "NÚMEROS", caps: "7 - 10" }, { dia: 21, livro: "NÚMEROS", caps: "11 - 14" }, { dia: 22, livro: "NÚMEROS", caps: "15 - 17" }, { dia: 23, livro: "NÚMEROS", caps: "18 - 20" }, { dia: 24, livro: "NÚMEROS", caps: "21 - 24" }, { dia: 25, livro: "NÚMEROS", caps: "25 - 27" }, { dia: 26, livro: "NÚMEROS", caps: "28 - 30" }, { dia: 27, livro: "NÚMEROS", caps: "31 - 33" }, { dia: 28, livro: "NÚMEROS", caps: "34 - 36" }, { dia: 29, livro: "DEUTERONÔMIO", caps: "1 - 3" }, { dia: 30, livro: "DEUTERONÔMIO", caps: "4 - 6" }, { dia: 31, livro: "DEUTERONÔMIO", caps: "7 - 9" } ],
+      "NOVEMBRO": [ { dia: 1, livro: "DEUTERONÔMIO", caps: "10 - 12" }, { dia: 2, livro: "DEUTERONÔMIO", caps: "13 - 16" }, { dia: 3, livro: "DEUTERONÔMIO", caps: "17 - 19" }, { dia: 4, livro: "DEUTERONÔMIO", caps: "20 - 22" }, { dia: 5, livro: "DEUTERONÔMIO", caps: "23 - 25" }, { dia: 6, livro: "DEUTERONÔMIO", caps: "26 - 28" }, { dia: 7, livro: "DEUTERONÔMIO", caps: "29 - 31" }, { dia: 8, livro: "DEUTERONÔMIO", caps: "32 - 34" }, { dia: 9, livro: "JOSUÉ", caps: "1 - 3" }, { dia: 10, livro: "JOSUÉ", caps: "4 - 6" }, { dia: 11, livro: "JOSUÉ", caps: "7 - 9" }, { dia: 12, livro: "JOSUÉ", caps: "10 - 12" }, { dia: 13, livro: "JOSUÉ", caps: "13 - 15" }, { dia: 14, livro: "JOSUÉ", caps: "16 - 18" }, { dia: 15, livro: "JOSUÉ", caps: "19 - 21" }, { dia: 16, livro: "JOSUÉ", caps: "22 - 24" }, { dia: 17, livro: "JUÍZES", caps: "1 - 4" }, { dia: 18, livro: "JUÍZES", caps: "5 - 8" }, { dia: 19, livro: "JUÍZES", caps: "9 - 12" }, { dia: 20, livro: "JUÍZES", caps: "13 - 15" }, { dia: 21, livro: "JUÍZES", caps: "16 - 18" }, { dia: 22, livro: "JUÍZES", caps: "19 - 21" }, { dia: 23, livro: "RUTE", caps: "1 - 4" }, { dia: 24, livro: "1 SAMUEL", caps: "1 - 3" }, { dia: 25, livro: "1 SAMUEL", caps: "4 - 7" }, { dia: 26, livro: "1 SAMUEL", caps: "8 - 10" }, { dia: 27, livro: "1 SAMUEL", caps: "11 - 13" }, { dia: 28, livro: "1 SAMUEL", caps: "14 - 16" }, { dia: 29, livro: "1 SAMUEL", caps: "17 - 20" }, { dia: 30, livro: "1 SAMUEL", caps: "21 - 24" } ],
+      "DEZEMBRO": [ { dia: 1, livro: "1 SAMUEL", caps: "25 - 28" }, { dia: 2, livro: "1 SAMUEL", caps: "29 - 31" }, { dia: 3, livro: "2 SAMUEL", caps: "1 - 4" }, { dia: 4, livro: "2 SAMUEL", caps: "5 - 8" }, { dia: 5, livro: "2 SAMUEL", caps: "9 - 12" }, { dia: 6, livro: "2 SAMUEL", caps: "13 - 15" }, { dia: 7, livro: "2 SAMUEL", caps: "16 - 18" }, { dia: 8, livro: "2 SAMUEL", caps: "19 - 21" }, { dia: 9, livro: "2 SAMUEL", caps: "22 - 24" }, { dia: 10, livro: "SALMOS", caps: "1 - 3" }, { dia: 11, livro: "SALMOS", caps: "4 - 6" }, { dia: 12, livro: "SALMOS", caps: "7 - 9" }, { dia: 13, livro: "SALMOS", caps: "10 - 12" }, { dia: 14, livro: "SALMOS", caps: "13 - 15" }, { dia: 15, livro: "SALMOS", caps: "16 - 18" }, { dia: 16, livro: "SALMOS", caps: "19 - 21" }, { dia: 17, livro: "SALMOS", caps: "22 - 24" }, { dia: 18, livro: "SALMOS", caps: "25 - 27" }, { dia: 19, livro: "SALMOS", caps: "28 - 30" }, { dia: 20, livro: "SALMOS", caps: "31 - 33" }, { dia: 21, livro: "SALMOS", caps: "34 - 36" }, { dia: 22, livro: "SALMOS", caps: "37 - 39" }, { dia: 23, livro: "SALMOS", caps: "40 - 42" }, { dia: 24, livro: "SALMOS", caps: "43 - 45" }, { dia: 25, livro: "SALMOS", caps: "46 - 48" }, { dia: 26, livro: "SALMOS", caps: "49 - 51" }, { dia: 27, livro: "SALMOS", caps: "52 - 54" }, { dia: 28, livro: "SALMOS", caps: "55 - 57" }, { dia: 29, livro: "SALMOS", caps: "58 - 60" }, { dia: 30, livro: "SALMOS", caps: "61 - 63" }, { dia: 31, livro: "SALMOS", caps: "64 - 66" } ]
     };
 
     // 🧩 UTILITÁRIOS
     function formatDate(d) { if(!d) return '-'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
-//  CONTROLE DE ABAS + INICIALIZAÇÃO + AUTH (substitua qualquer versão anterior)
-window.switchTab = (tab) => {
-  document.getElementById('tab-plano').style.display = tab==='plano'?'block':'none';
-  document.getElementById('tab-livre').style.display = tab==='livre'?'block':'none';
-  document.getElementById('tab-notas').style.display = tab==='notas'?'block':'none';
-  document.querySelectorAll('.tab-btn').forEach(b => {
-    const isActive = (tab==='plano' && b.textContent.includes('Plano')) ||
-                     (tab==='livre' && b.textContent.includes('Livre')) ||
-                     (tab==='notas' && b.textContent.includes('Anotações'));
-    b.classList.toggle('active', isActive);
-  });
-};
+    function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+    window.showToast = (msg) => { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); };
 
-function initApp() {
-  setupMonthSelector();
-  renderPlan();
-  loadFreeReadings();
-  loadNotes();
-}
+    // 🔐 AUTH + INIT + TABS
+    onAuthStateChanged(auth, async (user) => {
+      try {
+        if (user) { 
+          currentUserId = user.uid; 
+          document.getElementById('user-id').textContent = `ID: ${user.uid.substring(0, 6)}...`; 
+          loadPlanProgress(); 
+          loadFreeReadings(); 
+          loadNotes(); 
+          loadStatsAndGoals(); 
+        } else { await signInAnonymously(auth); }
+      } catch (error) { console.error("❌ Erro Auth:", error.code, error.message); document.getElementById('user-id').textContent = `Erro: ${error.code}`; showToast(`🔐 ${error.message}`); }
+    });
+    function initApp() { setupMonthSelector(); renderPlan(); loadFreeReadings(); loadNotes(); }
+    window.switchTab = (tab) => {
+      ['plano','livre','notas','stats'].forEach(t => document.getElementById(`tab-${t}`).style.display = t===tab?'block':'none');
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(tab==='stats'?'stats':tab)));
+    };
 
-onAuthStateChanged(auth, async (user) => {
-  try {
-    if (user) {
-      currentUserId = user.uid;
-      document.getElementById('user-id').textContent = `ID: ${user.uid.substring(0, 6)}...`;
-      loadPlanProgress();
-      loadFreeReadings();
-      loadNotes();
-    } else {
-      await signInAnonymously(auth);
+    // 🗓️ PLANO & BUSCA
+    function setupMonthSelector() { const sel = document.getElementById('month-selector'); sel.innerHTML = ''; Object.keys(PLAN_DATA).forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; sel.appendChild(opt); }); sel.value = currentMonth; sel.addEventListener('change', (e) => { currentMonth = e.target.value; renderPlan(); }); }
+    
+    // Busca em tempo real
+    document.getElementById('plan-search').addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      document.querySelectorAll('.plan-day').forEach(el => {
+        const text = el.innerText.toLowerCase();
+        el.style.display = text.includes(term) ? 'flex' : 'none';
+      });
+    });
+
+    function loadPlanProgress() { onSnapshot(doc(db, "users", currentUserId, "planProgress", "data"), (snap) => { planProgress = snap.exists() ? snap.data() : {}; updateCheckmarks(); calculateTotalProgress(); }); }
+    function renderPlan() { const container = document.getElementById('plan-container'); const data = PLAN_DATA[currentMonth] || []; container.innerHTML = data.map(day => { const key = `${currentMonth}-${day.dia}`; const done = !!planProgress[key]; return `<div class="plan-day ${done?'done':''}" data-key="${key}"><button class="day-check ${done?'checked':''}">${done?'✓':''}</button><div class="day-text"><div class="day-label">Dia ${day.dia}</div><div class="day-content">${day.livro} • Cap. ${day.caps}</div></div></div>`; }).join(''); container.querySelectorAll('.plan-day').forEach(el => el.querySelector('button').addEventListener('click', () => togglePlanDay(el.dataset.key))); updateProgressBar(data.length, data.filter(d => planProgress[`${currentMonth}-${d.dia}`]).length); }
+    function updateCheckmarks() { document.querySelectorAll('.plan-day').forEach(el => { const key = el.dataset.key; const done = !!planProgress[key]; el.className = `plan-day ${done ? 'done' : ''}`; const btn = el.querySelector('.day-check'); btn.className = `day-check ${done ? 'checked' : ''}`; btn.textContent = done ? '✓' : ''; }); const data = PLAN_DATA[currentMonth] || []; updateProgressBar(data.length, data.filter(d => planProgress[`${currentMonth}-${d.dia}`]).length); }
+    function updateProgressBar(total, completed) { const pct = total ? Math.round((completed/total)*100) : 0; document.getElementById('month-label').textContent = currentMonth; document.getElementById('month-pct').textContent = `${pct}%`; document.getElementById('month-bar').style.width = `${pct}%`; }
+    async function togglePlanDay(key) { if(!currentUserId){showToast('⏳ Conectando...');return;} const newVal = !planProgress[key]; planProgress[key]=newVal; updateCheckmarks(); calculateTotalProgress(); try { await setDoc(doc(db,"users",currentUserId,"planProgress","data"), {[key]:newVal}, {merge:true}); showToast(newVal?'✅ Marcado!':'↩️ Desmarcado'); } catch(e){console.error(e); showToast('❌ Erro ao salvar.'); planProgress[key]=!newVal; updateCheckmarks(); } }
+
+    // 📊 ESTATÍSTICAS & METAS
+    function calculateTotalProgress() {
+      let totalDays = 0, completedDays = 0;
+      Object.values(PLAN_DATA).forEach(month => { totalDays += month.length; completedDays += month.filter(d => planProgress[`JANEIRO-${d.dia}`] || planProgress[`${Object.keys(PLAN_DATA).find(k => k.includes(month[0].livro))}-${d.dia}`]).length; });
+      // Simplificação: conta apenas chaves existentes no planProgress que batem com o formato Mês-Dia
+      const keys = Object.keys(planProgress);
+      const completed = keys.filter(k => planProgress[k]).length;
+      // Total estimado de dias no ano (365)
+      const pct = Math.round((completed / 365) * 100);
+      document.getElementById('total-progress-val').textContent = `${pct}%`;
     }
-  } catch (error) {
-    console.error("❌ Erro Auth:", error.code, error.message);
-    document.getElementById('user-id').textContent = `Erro: ${error.code}`;
-    showToast(`🔐 ${error.message}`);
-  }
-});
 
-// 📝 ANOTAÇÕES PESSOAIS
-let userNotes = [];
+    function loadStatsAndGoals() {
+      // Carregar meta semanal
+      onSnapshot(doc(db, "users", currentUserId, "settings", "goals"), (snap) => {
+        if(snap.exists()) {
+          const data = snap.data();
+          weeklyGoal = data.weekly || 7;
+          document.getElementById('weekly-goal-input').value = weeklyGoal;
+          updateWeekProgress(data.weekCount || 0);
+        } else {
+          updateWeekProgress(0);
+        }
+      });
+      
+      // Calcular dias seguidos (Streak)
+      // Lógica simplificada: verifica se hoje ou ontem foi marcado no plano
+      const today = new Date();
+      const todayKey = `${getMonthName(today.getMonth())}-${today.getDate()}`;
+      const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
+      const yestKey = `${getMonthName(yesterday.getMonth())}-${yesterday.getDate()}`;
+      
+      let streak = 0;
+      if(planProgress[todayKey] || planProgress[yestKey]) {
+        // Se marcou hoje ou ontem, começa a contar. Para um streak real, precisaria iterar dias para trás.
+        // Aqui vamos usar uma aproximação baseada no total de leituras livres + plano para motivar
+        streak = freeReadings.length + Object.values(planProgress).filter(v=>v).length > 0 ? 1 : 0; 
+        // Nota: Streak complexo requer lógica de datas robusta. Mantemos simples por enquanto.
+      }
+      document.getElementById('streak-val').textContent = streak;
+      document.getElementById('total-readings-val').textContent = freeReadings.length;
+    }
 
-function loadNotes() {
-  if (!currentUserId) return;
-  const q = query(collection(db, `users/${currentUserId}/notes`), orderBy('createdAt', 'desc'));
-  onSnapshot(q, (snap) => {
-    userNotes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderNotes();
-  }, (err) => console.error("Erro ao carregar notas:", err));
-}
+    function getMonthName(idx) { return ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"][idx]; }
 
-function renderNotes() {
-  const container = document.getElementById('notes-container');
-  if (!container) return;
-  if (userNotes.length === 0) {
-    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);">Nenhuma anotação registrada ainda.</p>';
-    return;
-  }
-  container.innerHTML = userNotes.map(n => `
-    <div class="free-card" style="flex-direction:column;align-items:flex-start;gap:6px;">
-      <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
-        <strong style="font-size:0.9rem;">📅 ${formatDate(n.date)} ${n.reference ? `• ${n.reference}` : ''}</strong>
-        <div style="display:flex;gap:4px;">
-          <button class="icon-btn delete" onclick="deleteNote('${n.id}')" title="Excluir">🗑️</button>
-        </div>
-      </div>
-      <p style="font-size:0.85rem;color:var(--text-muted);white-space:pre-wrap;">${escapeHtml(n.text)}</p>
-    </div>
-  `).join('');
-}
+    window.saveGoal = async () => {
+      const val = parseInt(document.getElementById('weekly-goal-input').value) || 7;
+      await setDoc(doc(db, "users", currentUserId, "settings", "goals"), { weekly: val }, { merge: true });
+      showToast('🎯 Meta atualizada!');
+    };
 
-// Proteção básica contra XSS em texto do usuário
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
+    function updateWeekProgress(count) {
+      const pct = Math.min(100, Math.round((count / weeklyGoal) * 100));
+      document.getElementById('week-pct').textContent = `${count}/${weeklyGoal}`;
+      document.getElementById('week-bar').style.width = `${pct}%`;
+    }
 
-window.openNoteModal = () => {
-  document.getElementById('n-date').value = new Date().toISOString().split('T')[0];
-  document.getElementById('n-reference').value = '';
-  document.getElementById('n-text').value = '';
-  document.getElementById('note-modal').classList.add('open');
-};
-window.closeNoteModal = () => document.getElementById('note-modal').classList.remove('open');
-document.getElementById('note-modal').onclick = (e) => { if(e.target===e.currentTarget) closeNoteModal(); };
+    // 📖 LEITURA LIVRE
+    function loadFreeReadings() { if(!currentUserId)return; const q=query(collection(db,"users/"+currentUserId+"/readings"),orderBy("date","desc")); onSnapshot(q,(snap)=>{ freeReadings=snap.docs.map(d=>({id:d.id,...d.data()})); renderFreeReadings(); renderFreeSummary(); loadStatsAndGoals(); },(err)=>console.error("Erro:",err)); }
+    function renderFreeReadings() { const container=document.getElementById('free-container'); if(!container)return; if(freeReadings.length===0){container.innerHTML='<p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p>';return;} container.innerHTML=freeReadings.map(r=>`<div class="free-card"><div class="free-info"><h4>${r.book}</h4><p>📖 Cap. ${r.chapter??r.chapters} ${r.verses?`• Vs. ${r.verses}`:''} | 📅 ${formatDate(r.date)}</p></div><button class="icon-btn delete" onclick="deleteFree('${r.id}')">🗑️</button></div>`).join(''); }
+    function renderFreeSummary() { const container = document.getElementById('free-summary'); if (!container) return; if (!freeReadings || freeReadings.length === 0) { container.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Nenhuma leitura registrada ainda.</p>'; return; } const byBook = {}; freeReadings.forEach(r => { if (!r.book || !r.date) return; const bookKey = r.book.trim().toLowerCase(); const current = byBook[bookKey]; const dateCurrent = new Date(r.date); const dateLast = current ? new Date(current.date) : new Date(0); if (!current || dateCurrent > dateLast) byBook[bookKey] = r; }); const sorted = Object.values(byBook).sort((a, b) => new Date(b.date) - new Date(a.date)); if (sorted.length === 0) { container.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Nenhuma leitura válida encontrada.</p>'; return; } container.innerHTML = sorted.map(r => { let lastCh = r.chapter; if (lastCh === undefined && r.chapters) { const match = String(r.chapters).match(/^\d+/); lastCh = match ? parseInt(match[0]) : 1; } if (lastCh === undefined || isNaN(lastCh)) lastCh = 1; const nextCh = lastCh + 1; const safeBook = r.book.replace(/'/g, "\\'"); const versesText = r.verses ? `• Vs. ${r.verses}` : (r.chapters && !r.chapter ? `• ${r.chapters}` : ''); return `<div class="free-card" style="margin-bottom:6px;"><div class="free-info"><h4 style="font-size:0.95rem;">${r.book}</h4><p style="font-size:0.8rem;">📖 Parou no Cap. ${lastCh} ${versesText} | 📅 ${formatDate(r.date)}</p></div><button class="icon-btn" style="background:var(--primary);color:white;font-weight:600;" onclick="window.continueReading('${safeBook}', ${nextCh})" title="Continuar leitura">➡️</button></div>`; }).join(''); }
+    window.continueReading = (book, nextChapter) => { document.getElementById('f-book').value = book; document.getElementById('f-chapter').value = nextChapter; document.getElementById('f-verses').value = ''; document.getElementById('f-date').value = new Date().toISOString().split('T')[0]; openFreeModal(); };
+    window.deleteFree = async (id) => { if(confirm('Excluir?')){await deleteDoc(doc(db,`users/${currentUserId}/readings/${id}`)); showToast('🗑️ Removida'); } };
+    document.getElementById('free-form').onsubmit = async (e) => { e.preventDefault(); await addDoc(collection(db,`users/${currentUserId}/readings`),{book:document.getElementById('f-book').value.trim(),chapter:parseInt(document.getElementById('f-chapter').value),verses:document.getElementById('f-verses').value.trim()||"",date:document.getElementById('f-date').value,createdAt:serverTimestamp()}); closeModal(); e.target.reset(); showToast('📖 Leitura registrada!'); };
+    window.openFreeModal = () => { document.getElementById('f-date').value=new Date().toISOString().split('T')[0]; document.getElementById('modal').classList.add('open'); };
+    window.closeModal = () => document.getElementById('modal').classList.remove('open');
+    document.getElementById('modal').onclick = (e) => { if(e.target===e.currentTarget)closeModal(); };
 
-document.getElementById('note-form').onsubmit = async (e) => {
-  e.preventDefault();
-  await addDoc(collection(db, `users/${currentUserId}/notes`), {
-    date: document.getElementById('n-date').value,
-    reference: document.getElementById('n-reference').value.trim(),
-    text: document.getElementById('n-text').value.trim(),
-    createdAt: serverTimestamp()
-  });
-  closeNoteModal();
-  e.target.reset();
-  showToast('📝 Anotação salva!');
-};
+    // 📝 ANOTAÇÕES
+    function loadNotes() { if(!currentUserId)return; const q=query(collection(db,`users/${currentUserId}/notes`),orderBy('createdAt','desc')); onSnapshot(q,(snap)=>{ userNotes=snap.docs.map(d=>({id:d.id,...d.data()})); renderNotes(); },(err)=>console.error("Erro notas:",err)); }
+    function renderNotes() { const container=document.getElementById('notes-container'); if(!container)return; if(userNotes.length===0){container.innerHTML='<p style="text-align:center;color:var(--text-muted);">Nenhuma anotação registrada ainda.</p>';return;} container.innerHTML=userNotes.map(n=>`<div class="free-card" style="flex-direction:column;align-items:flex-start;gap:6px;"><div style="display:flex;justify-content:space-between;width:100%;align-items:center;"><strong style="font-size:0.9rem;">📅 ${formatDate(n.date)} ${n.reference?`• ${n.reference}`:''}</strong><button class="icon-btn delete" onclick="deleteNote('${n.id}')" title="Excluir">🗑️</button></div><p style="font-size:0.85rem;color:var(--text-muted);white-space:pre-wrap;">${escapeHtml(n.text)}</p></div>`).join(''); }
+    window.openNoteModal = () => { document.getElementById('n-date').value=new Date().toISOString().split('T')[0]; document.getElementById('n-reference').value=''; document.getElementById('n-text').value=''; document.getElementById('note-modal').classList.add('open'); };
+    window.closeNoteModal = () => document.getElementById('note-modal').classList.remove('open');
+    document.getElementById('note-modal').onclick = (e) => { if(e.target===e.currentTarget)closeNoteModal(); };
+    document.getElementById('note-form').onsubmit = async (e) => { e.preventDefault(); await addDoc(collection(db,`users/${currentUserId}/notes`),{date:document.getElementById('n-date').value,reference:document.getElementById('n-reference').value.trim(),text:document.getElementById('n-text').value.trim(),createdAt:serverTimestamp()}); closeNoteModal(); e.target.reset(); showToast('📝 Anotação salva!'); };
+    window.deleteNote = async (id) => { if(confirm('Excluir anotação?')){await deleteDoc(doc(db,`users/${currentUserId}/notes/${id}`)); showToast('🗑️ Removida'); } };
 
-window.deleteNote = async (id) => {
-  if(confirm('Excluir esta anotação?')) {
-    await deleteDoc(doc(db, `users/${currentUserId}/notes/${id}`));
-    showToast('🗑️ Anotação removida');
-  }
-};
+    // 📱 PWA
+    if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./service-worker.js').then(()=>console.log('✅ PWA ativo')).catch(err=>console.error('Erro SW:',err));});}
+
+    // 🚀 INICIALIZAR
     initApp();
   </script>
 </body>
