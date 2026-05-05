@@ -101,7 +101,46 @@
     <!-- ABA LEITURA LIVRE -->
     <div id="tab-livre" style="display:none;">
       <button class="btn" onclick="openFreeModal()">➕ Registrar Leitura</button>
-      
+ <!-- 🔹 ABA ANOTAÇÕES (adicione este botão junto aos outros botões de aba) -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('plano')">📅 Plano Oficial</button>
+  <button class="tab-btn" onclick="switchTab('livre')">📖 Leitura Livre</button>
+  <button class="tab-btn" onclick="switchTab('notas')">📝 Anotações</button>
+</div>
+
+<!-- 🔹 CONTEÚDO DA ABA ANOTAÇÕES -->
+<div id="tab-notas" style="display:none;">
+  <button class="btn" onclick="openNoteModal()">➕ Nova Anotação</button>
+  <div id="notes-container" class="readings-list">
+    <p style="text-align:center;color:var(--text-muted);">Nenhuma anotação registrada ainda.</p>
+  </div>
+</div>
+
+<!-- 🔹 MODAL DE ANOTAÇÃO (cole junto com os outros modais) -->
+<div class="modal-overlay" id="note-modal">
+  <div class="modal">
+    <h3>📝 Nova Anotação</h3>
+    <form id="note-form">
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="n-date" required>
+      </div>
+      <div class="form-group">
+        <label>Referência (opcional)</label>
+        <input type="text" id="n-reference" placeholder="Ex: Salmos 23, João 3:16...">
+      </div>
+      <div class="form-group">
+        <label>Sua reflexão</label>
+        <textarea id="n-text" rows="4" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);resize:vertical;" required placeholder="Escreva aqui seus insights, orações ou aprendizados..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-sec" onclick="closeNoteModal()">Cancelar</button>
+        <button type="submit" class="btn">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>     
+
       <!-- 📍 RESUMO: ONDE PAREI? -->
       <div class="progress-box" style="margin:16px 0 12px; padding:12px; background:var(--card); border-radius:var(--radius); border:1px solid var(--border);">
         <h3 style="font-size:0.95rem; margin-bottom:8px; color:var(--text)">📍 Onde parei?</h3>
@@ -603,29 +642,113 @@
 
     // 🧩 UTILITÁRIOS
     function formatDate(d) { if(!d) return '-'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
-    window.switchTab = (tab) => {
-      document.getElementById('tab-plano').style.display = tab==='plano'?'block':'none';
-      document.getElementById('tab-livre').style.display = tab==='livre'?'block':'none';
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(tab==='plano'?'Plano':'Livre')));
-    };
-    window.openFreeModal = () => {
-      document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-      document.getElementById('modal').classList.add('open');
-    };
-    window.closeModal = () => document.getElementById('modal').classList.remove('open');
-    document.getElementById('modal').onclick = (e) => { if(e.target===e.currentTarget) closeModal(); };
-    window.showToast = (msg) => { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); };
-    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+// 1️⃣ Atualize switchTab para suportar 3 abas
+window.switchTab = (tab) => {
+  document.getElementById('tab-plano').style.display = tab==='plano'?'block':'none';
+  document.getElementById('tab-livre').style.display = tab==='livre'?'block':'none';
+  document.getElementById('tab-notas').style.display = tab==='notas'?'block':'none';
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    const isActive = (tab==='plano' && b.textContent.includes('Plano')) ||
+                     (tab==='livre' && b.textContent.includes('Livre')) ||
+                     (tab==='notas' && b.textContent.includes('Anotações'));
+    b.classList.toggle('active', isActive);
+  });
+};
 
-    // 📱 PWA SERVICE WORKER
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
-          .then(() => console.log('✅ PWA ativo: pode instalar no celular!'))
-          .catch(err => console.error('Erro SW:', err));
-      });
+// 2️⃣ Atualize initApp
+function initApp() {
+  setupMonthSelector();
+  renderPlan();
+  loadFreeReadings();
+  loadNotes(); // 👈 NOVO
+}
+
+// 3️⃣ Atualize onAuthStateChanged
+onAuthStateChanged(auth, async (user) => {
+  try {
+    if (user) {
+      currentUserId = user.uid;
+      document.getElementById('user-id').textContent = `ID: ${user.uid.substring(0, 6)}...`;
+      loadPlanProgress();
+      loadFreeReadings();
+      loadNotes(); // 👈 NOVO
+    } else {
+      await signInAnonymously(auth);
     }
+  } catch (error) {
+    console.error("❌ Erro Auth:", error.code, error.message);
+    document.getElementById('user-id').textContent = `Erro: ${error.code}`;
+    showToast(` ${error.message}`);
+  }
+});
 
+// 📝 ANOTAÇÕES PESSOAIS
+let userNotes = [];
+
+function loadNotes() {
+  if (!currentUserId) return;
+  const q = query(collection(db, `users/${currentUserId}/notes`), orderBy('createdAt', 'desc'));
+  onSnapshot(q, (snap) => {
+    userNotes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderNotes();
+  }, (err) => console.error("Erro ao carregar notas:", err));
+}
+
+function renderNotes() {
+  const container = document.getElementById('notes-container');
+  if (!container) return;
+  if (userNotes.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text-muted);">Nenhuma anotação registrada ainda.</p>';
+    return;
+  }
+  container.innerHTML = userNotes.map(n => `
+    <div class="free-card" style="flex-direction:column;align-items:flex-start;gap:6px;">
+      <div style="display:flex;justify-content:space-between;width:100%;align-items:center;">
+        <strong style="font-size:0.9rem;">📅 ${formatDate(n.date)} ${n.reference ? `• ${n.reference}` : ''}</strong>
+        <div style="display:flex;gap:4px;">
+          <button class="icon-btn delete" onclick="deleteNote('${n.id}')" title="Excluir">🗑️</button>
+        </div>
+      </div>
+      <p style="font-size:0.85rem;color:var(--text-muted);white-space:pre-wrap;">${escapeHtml(n.text)}</p>
+    </div>
+  `).join('');
+}
+
+// Proteção básica contra XSS em texto do usuário
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+window.openNoteModal = () => {
+  document.getElementById('n-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('n-reference').value = '';
+  document.getElementById('n-text').value = '';
+  document.getElementById('note-modal').classList.add('open');
+};
+window.closeNoteModal = () => document.getElementById('note-modal').classList.remove('open');
+document.getElementById('note-modal').onclick = (e) => { if(e.target===e.currentTarget) closeNoteModal(); };
+
+document.getElementById('note-form').onsubmit = async (e) => {
+  e.preventDefault();
+  await addDoc(collection(db, `users/${currentUserId}/notes`), {
+    date: document.getElementById('n-date').value,
+    reference: document.getElementById('n-reference').value.trim(),
+    text: document.getElementById('n-text').value.trim(),
+    createdAt: serverTimestamp()
+  });
+  closeNoteModal();
+  e.target.reset();
+  showToast('📝 Anotação salva!');
+};
+
+window.deleteNote = async (id) => {
+  if(confirm('Excluir esta anotação?')) {
+    await deleteDoc(doc(db, `users/${currentUserId}/notes/${id}`));
+    showToast('🗑️ Anotação removida');
+  }
+};
     initApp();
   </script>
 </body>
