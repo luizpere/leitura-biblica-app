@@ -501,23 +501,6 @@
     document.getElementById('wiki-modal').onclick = (e) => { if (e.target === e.currentTarget) closeWikiModal(); };
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeWikiModal(); closeModal(); } });
 
-    function initApp() { setupMonthSelector(); renderPlan(); }
-
-    // 🔐 AUTH
-    onAuthStateChanged(auth, async (user) => {
-      try {
-        if (user) {
-          currentUserId = user.uid;
-          document.getElementById('user-id').textContent = `ID: ${user.uid.substring(0, 6)}...`;
-          loadPlanProgress();
-          loadFreeReadings();
-        } else { await signInAnonymously(auth); }
-      } catch (error) {
-        console.error("❌ Erro Auth:", error.code, error.message);
-        document.getElementById('user-id').textContent = `Erro: ${error.code}`;
-        showToast(`🔐 ${error.message}`);
-      }
-    });
 
     // 🗓️ SELETOR
     function setupMonthSelector() {
@@ -642,7 +625,7 @@
 
     // 🧩 UTILITÁRIOS
     function formatDate(d) { if(!d) return '-'; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
-// 1️⃣ Atualize switchTab para suportar 3 abas
+//  CONTROLE DE ABAS + INICIALIZAÇÃO + AUTH (substitua qualquer versão anterior)
 window.switchTab = (tab) => {
   document.getElementById('tab-plano').style.display = tab==='plano'?'block':'none';
   document.getElementById('tab-livre').style.display = tab==='livre'?'block':'none';
@@ -655,15 +638,13 @@ window.switchTab = (tab) => {
   });
 };
 
-// 2️⃣ Atualize initApp
 function initApp() {
   setupMonthSelector();
   renderPlan();
   loadFreeReadings();
-  loadNotes(); // 👈 NOVO
+  loadNotes();
 }
 
-// 3️⃣ Atualize onAuthStateChanged
 onAuthStateChanged(auth, async (user) => {
   try {
     if (user) {
@@ -671,14 +652,14 @@ onAuthStateChanged(auth, async (user) => {
       document.getElementById('user-id').textContent = `ID: ${user.uid.substring(0, 6)}...`;
       loadPlanProgress();
       loadFreeReadings();
-      loadNotes(); // 👈 NOVO
+      loadNotes();
     } else {
       await signInAnonymously(auth);
     }
   } catch (error) {
     console.error("❌ Erro Auth:", error.code, error.message);
     document.getElementById('user-id').textContent = `Erro: ${error.code}`;
-    showToast(` ${error.message}`);
+    showToast(`🔐 ${error.message}`);
   }
 });
 
