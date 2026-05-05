@@ -4,15 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>📖 Minha Leitura Bíblica</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root { --bg:#0f172a; --card:rgba(30,41,59,0.7); --text:#e2e8f0; --text-muted:#94a3b8; --primary:#10b981; --primary-hover:#059669; --danger:#ef4444; --border:rgba(148,163,184,0.2); --shadow:0 4px 12px rgba(0,0,0,0.3); --radius:12px; }
-    @media (prefers-color-scheme: light) { :root { --bg:#f8fafc; --card:rgba(255,255,255,0.9); --text:#1e293b; --text-muted:#64748b; --border:rgba(0,0,0,0.1); --shadow:0 4px 12px rgba(0,0,0,0.1); } }
+    :root[data-theme="light"] { --bg:#f8fafc; --card:rgba(255,255,255,0.95); --text:#1e293b; --text-muted:#64748b; --border:rgba(0,0,0,0.15); --shadow:0 4px 12px rgba(0,0,0,0.08); }
     * { box-sizing:border-box; margin:0; padding:0; font-family:system-ui,-apple-system,sans-serif; }
-    body { background:var(--bg); color:var(--text); min-height:100vh; padding:16px; }
+    body { background:var(--bg); color:var(--text); min-height:100vh; padding:16px; transition:background 0.3s, color 0.3s; }
     .container { max-width:600px; margin:0 auto; }
-    header { text-align:center; margin-bottom:20px; }
+    header { text-align:center; margin-bottom:20px; position:relative; }
     h1 { font-size:1.6rem; margin-bottom:6px; background:linear-gradient(135deg,var(--primary),#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
     #user-id { font-size:0.75rem; color:var(--text-muted); background:var(--card); padding:3px 8px; border-radius:20px; display:inline-block; }
+    
+    .header-actions { position:absolute; top:0; right:0; display:flex; gap:8px; }
+    .icon-btn { width:34px; height:34px; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1); color:var(--text); transition:0.2s; font-size:1rem; }
+    .icon-btn:hover { background:var(--primary); color:white; }
     
     .tabs { display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; padding-bottom:4px; }
     .tab-btn { flex:1; white-space:nowrap; padding:10px; border:1px solid var(--border); border-radius:var(--radius); background:transparent; color:var(--text-muted); cursor:pointer; font-weight:600; transition:0.2s; min-width:100px; }
@@ -41,15 +46,19 @@
 
     .btn { width:100%; padding:12px; border:none; border-radius:var(--radius); background:var(--primary); color:white; font-size:1rem; font-weight:600; cursor:pointer; margin-bottom:16px; }
     .btn:hover { background:var(--primary-hover); }
+    .btn-sec { background:var(--card); color:var(--text); border:1px solid var(--border); }
     .readings-list { display:flex; flex-direction:column; gap:10px; }
     .free-card { background:var(--card); padding:12px; border-radius:8px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
     .free-info h4 { font-size:1rem; margin-bottom:2px; }
     .free-info p { font-size:0.8rem; color:var(--text-muted); }
-    .icon-btn { width:30px; height:30px; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1); color:var(--text); transition:0.2s; }
     .icon-btn.delete:hover { background:var(--danger); color:white; }
 
     .goal-box { background:var(--card); padding:12px; border-radius:var(--radius); margin-bottom:16px; border:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
     .goal-input { width:60px; padding:4px; border-radius:4px; border:1px solid var(--border); background:var(--bg); color:var(--text); text-align:center; }
+
+    .chart-container { background:var(--card); padding:12px; border-radius:var(--radius); border:1px solid var(--border); margin-bottom:16px; position:relative; height:200px; }
+    .action-row { display:flex; gap:8px; margin-bottom:16px; }
+    .action-row .btn { flex:1; margin-bottom:0; font-size:0.9rem; padding:10px; }
 
     .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:0.3s; z-index:100; }
     .modal-overlay.open { opacity:1; pointer-events:auto; }
@@ -60,7 +69,6 @@
     .form-group input, .form-group textarea { width:100%; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--card); color:var(--text); }
     .form-group textarea:focus { border-color:var(--primary); outline:none; }
     .modal-actions { display:flex; gap:8px; margin-top:12px; }
-    .btn-sec { background:var(--card); color:var(--text); }
 
     #loading { position:fixed; inset:0; background:var(--bg); display:flex; align-items:center; justify-content:center; z-index:200; }
     .spinner { width:40px; height:40px; border:4px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 1s linear infinite; }
@@ -80,8 +88,13 @@
   <div class="container">
     <header>
       <h1>📖 Minha Leitura Bíblica</h1>
-      <div id="user-id">Conectando...</div>
-      <button class="icon-btn" onclick="openWikiModal()" style="margin-top:8px;background:rgba(16,185,129,0.15);color:var(--primary);" title="Como usar">❓ Como usar</button>
+      <div class="header-actions">
+        <button class="icon-btn" id="theme-toggle" title="Alternar tema">🌙</button>
+        <button class="icon-btn" onclick="openWikiModal()" title="Como usar">❓</button>
+      </div>
+      <div style="margin-top:8px;">
+        <div id="user-id">Conectando...</div>
+      </div>
     </header>
     
     <div class="tabs">
@@ -112,7 +125,7 @@
       <div class="readings-list" id="free-container"><p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p></div>
     </div>
 
-    <!-- ABA ANOTAÇÕES (COM EDITOR INLINE) -->
+    <!-- ABA ANOTAÇÕES -->
     <div id="tab-notas" style="display:none;">
       <div class="progress-box" style="padding:12px; margin-bottom:16px;">
         <h3 style="font-size:0.95rem; margin-bottom:8px;">📝 Nova Anotação</h3>
@@ -126,12 +139,10 @@
           <button class="btn btn-sec" style="margin-bottom:0; flex:1;" onclick="clearQuickNote()">Limpar</button>
         </div>
       </div>
-      <div id="notes-container" class="readings-list">
-        <p style="text-align:center;color:var(--text-muted);">Nenhuma anotação registrada ainda.</p>
-      </div>
+      <div id="notes-container" class="readings-list"><p style="text-align:center;color:var(--text-muted);">Nenhuma anotação registrada ainda.</p></div>
     </div>
 
-    <!-- ABA ESTATÍSTICAS & METAS -->
+    <!-- ABA ESTATÍSTICAS & NOVAS FUNÇÕES -->
     <div id="tab-stats" style="display:none;">
       <div class="stats-grid">
         <div class="stat-card"><div class="stat-val" id="streak-val">0</div><div class="stat-label">Dias Seguidos</div></div>
@@ -140,23 +151,25 @@
       </div>
       
       <div class="goal-box">
-        <div>
-          <strong style="font-size:0.9rem;">🎯 Meta Semanal</strong>
-          <p style="font-size:0.75rem;color:var(--text-muted);">Capítulos por semana</p>
-        </div>
+        <div><strong style="font-size:0.9rem;">🎯 Meta Semanal</strong><p style="font-size:0.75rem;color:var(--text-muted);">Capítulos por semana</p></div>
         <div style="display:flex;align-items:center;gap:8px;">
           <input type="number" id="weekly-goal-input" class="goal-input" value="7" min="1">
           <button class="icon-btn" onclick="saveGoal()" style="background:var(--primary);color:white;">💾</button>
         </div>
       </div>
-      <div class="progress-box">
-        <div class="progress-text"><span>Progresso da Semana</span><span id="week-pct">0/7</span></div>
-        <div class="progress-bar"><div class="progress-fill" id="week-bar" style="width:0%"></div></div>
+      
+      <div class="chart-container">
+        <canvas id="progress-chart"></canvas>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-sec" onclick="exportData()">📤 Exportar TXT</button>
+        <button class="btn btn-sec" id="reminder-btn" onclick="toggleReminder()">🔔 Ativar Lembrete</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAIS (Leitura + Wiki) -->
+  <!-- MODAIS -->
   <div class="modal-overlay" id="modal">
     <div class="modal"><h3>📖 Nova Leitura</h3><form id="free-form">
       <div class="form-group"><label>Livro</label><input type="text" id="f-book" required placeholder="Ex: Gênesis, Mateus..."></div>
@@ -168,11 +181,10 @@
   </div>
   <div class="modal-overlay" id="wiki-modal">
     <div class="modal"><h3>❓ Como usar este app</h3><div style="max-height:60vh;overflow-y:auto;padding-right:4px;">
-      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📅 Plano Oficial</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Siga a leitura bíblica cronológica anual</li><li>Clique no ✓ para marcar o dia concluído</li><li>Use a busca 🔍 para encontrar rapidamente</li></ul>
-      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📖 Leitura Livre</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Registre leituras fora do plano, no seu ritmo</li><li>Preencha: Livro + Capítulo + Versículos (opcional)</li></ul>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📅 Plano Oficial</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Siga a leitura bíblica cronológica anual</li><li>Clique no <strong>✓</strong> para marcar o dia concluído</li><li>Use a <strong>🔍 Busca</strong> para filtrar rapidamente</li></ul>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📖 Leitura Livre</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Registre leituras fora do plano, no seu ritmo</li><li>O resumo <strong>📍 Onde parei?</strong> mostra seu último capítulo</li><li>Clique em <strong>➡️</strong> para continuar de onde parou</li></ul>
       <h4 style="margin:12px 0 6px;font-size:0.95rem;">📝 Anotações</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Editor visível na aba Notas</li><li>Salve reflexões, orações e insights</li></ul>
-      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📊 Estatísticas</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Acompanhe seus dias seguidos e progresso total</li><li>Defina metas semanais de capítulos</li></ul>
-      <h4 style="margin:12px 0 6px;font-size:0.95rem;">🔐 Privacidade</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Login anônimo: sem cadastro, sem e-mail</li><li>Cada usuário tem espaço isolado na nuvem</li></ul>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📊 Estatísticas & Extras</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Gráfico mensal, metas semanais e exportação TXT</li><li>🌙 Alternância manual de tema</li><li>🔔 Lembretes diários via navegador</li><li>Login anônimo automático (sem cadastro)</li></ul>
     </div><div class="modal-actions" style="margin-top:16px;"><button class="btn" onclick="closeWikiModal()">Entendi, obrigado!</button></div></div>
   </div>
 
@@ -190,7 +202,8 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    let currentUserId = null, planProgress = {}, freeReadings = [], userNotes = [], currentMonth = "JANEIRO", weeklyGoal = 7;
+    let currentUserId = null, planProgress = {}, freeReadings = [], userNotes = [], currentMonth = "JANEIRO", weeklyGoal = 7, reminderActive = false, reminderInterval = null;
+    let progressChart = null;
 
     const PLAN_DATA = {
       "JANEIRO": [ { dia: 1, livro: "SALMOS", caps: "67 - 69" }, { dia: 2, livro: "SALMOS", caps: "70 - 72" }, { dia: 3, livro: "SALMOS", caps: "73 - 75" }, { dia: 4, livro: "SALMOS", caps: "76 - 78" }, { dia: 5, livro: "SALMOS", caps: "79 - 81" }, { dia: 6, livro: "SALMOS", caps: "82 - 84" }, { dia: 7, livro: "SALMOS", caps: "85 - 87" }, { dia: 8, livro: "SALMOS", caps: "88 - 90" }, { dia: 9, livro: "SALMOS", caps: "91 - 93" }, { dia: 10, livro: "SALMOS", caps: "94 - 96" }, { dia: 11, livro: "SALMOS", caps: "97 - 99" }, { dia: 12, livro: "SALMOS", caps: "100 - 102" }, { dia: 13, livro: "SALMOS", caps: "103 - 105" }, { dia: 14, livro: "SALMOS", caps: "106 - 108" }, { dia: 15, livro: "SALMOS", caps: "109 - 111" }, { dia: 16, livro: "SALMOS", caps: "112 - 114" }, { dia: 17, livro: "SALMOS", caps: "115 - 118" }, { dia: 18, livro: "SALMOS", caps: "119" }, { dia: 19, livro: "SALMOS", caps: "120 - 123" }, { dia: 20, livro: "SALMOS", caps: "124 - 126" }, { dia: 21, livro: "SALMOS", caps: "127 - 129" }, { dia: 22, livro: "SALMOS", caps: "130 - 132" }, { dia: 23, livro: "SALMOS", caps: "133 - 135" }, { dia: 24, livro: "SALMOS", caps: "136 - 138" }, { dia: 25, livro: "SALMOS", caps: "139 - 141" }, { dia: 26, livro: "SALMOS", caps: "142 - 144" }, { dia: 27, livro: "SALMOS", caps: "145 - 147" }, { dia: 28, livro: "SALMOS", caps: "148 - 150" }, { dia: 29, livro: "1 REIS", caps: "1 - 4" }, { dia: 30, livro: "PROVÉRBIOS", caps: "1 - 3" }, { dia: 31, livro: "PROVÉRBIOS", caps: "4 - 7" } ],
@@ -211,83 +224,95 @@
     function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
     window.showToast = (msg) => { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); };
 
+    // 🔐 AUTH (ANÔNIMO)
     onAuthStateChanged(auth, async (user) => {
       try {
-        if (user) { 
-          currentUserId = user.uid; 
-          document.getElementById('user-id').textContent = `ID: ${user.uid.substring(0, 6)}...`; 
-          loadPlanProgress(); 
-          loadFreeReadings(); 
-          loadNotes(); 
-          loadStatsAndGoals(); 
-        } else { await signInAnonymously(auth); }
+        if (user) {
+          currentUserId = user.uid;
+          document.getElementById('user-id').textContent = `ID: ${user.uid.substring(0, 6)}...`;
+          loadPlanProgress(); loadFreeReadings(); loadNotes(); loadStatsAndGoals();
+        } else {
+          await signInAnonymously(auth);
+        }
       } catch (error) { console.error("❌ Erro Auth:", error.code, error.message); document.getElementById('user-id').textContent = `Erro: ${error.code}`; showToast(`🔐 ${error.message}`); }
     });
-    function initApp() { setupMonthSelector(); renderPlan(); loadFreeReadings(); loadNotes(); }
+
+    function initApp() { setupMonthSelector(); renderPlan(); applyTheme(); }
     window.switchTab = (tab) => {
       ['plano','livre','notas','stats'].forEach(t => document.getElementById(`tab-${t}`).style.display = t===tab?'block':'none');
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(tab==='stats'?'stats':tab)));
     };
 
+    // 🗓️ PLANO & BUSCA
     function setupMonthSelector() { const sel = document.getElementById('month-selector'); sel.innerHTML = ''; Object.keys(PLAN_DATA).forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; sel.appendChild(opt); }); sel.value = currentMonth; sel.addEventListener('change', (e) => { currentMonth = e.target.value; renderPlan(); }); }
-    
     document.getElementById('plan-search').addEventListener('input', (e) => {
       const term = e.target.value.toLowerCase();
-      document.querySelectorAll('.plan-day').forEach(el => {
-        const text = el.innerText.toLowerCase();
-        el.style.display = text.includes(term) ? 'flex' : 'none';
-      });
+      document.querySelectorAll('.plan-day').forEach(el => el.style.display = el.innerText.toLowerCase().includes(term) ? 'flex' : 'none');
     });
 
-    function loadPlanProgress() { onSnapshot(doc(db, "users", currentUserId, "planProgress", "data"), (snap) => { planProgress = snap.exists() ? snap.data() : {}; updateCheckmarks(); calculateTotalProgress(); }); }
+    function loadPlanProgress() { onSnapshot(doc(db, "users", currentUserId, "planProgress", "data"), (snap) => { planProgress = snap.exists() ? snap.data() : {}; updateCheckmarks(); calculateTotalProgress(); updateChart(); }); }
     function renderPlan() { const container = document.getElementById('plan-container'); const data = PLAN_DATA[currentMonth] || []; container.innerHTML = data.map(day => { const key = `${currentMonth}-${day.dia}`; const done = !!planProgress[key]; return `<div class="plan-day ${done?'done':''}" data-key="${key}"><button class="day-check ${done?'checked':''}">${done?'✓':''}</button><div class="day-text"><div class="day-label">Dia ${day.dia}</div><div class="day-content">${day.livro} • Cap. ${day.caps}</div></div></div>`; }).join(''); container.querySelectorAll('.plan-day').forEach(el => el.querySelector('button').addEventListener('click', () => togglePlanDay(el.dataset.key))); updateProgressBar(data.length, data.filter(d => planProgress[`${currentMonth}-${d.dia}`]).length); }
     function updateCheckmarks() { document.querySelectorAll('.plan-day').forEach(el => { const key = el.dataset.key; const done = !!planProgress[key]; el.className = `plan-day ${done ? 'done' : ''}`; const btn = el.querySelector('.day-check'); btn.className = `day-check ${done ? 'checked' : ''}`; btn.textContent = done ? '✓' : ''; }); const data = PLAN_DATA[currentMonth] || []; updateProgressBar(data.length, data.filter(d => planProgress[`${currentMonth}-${d.dia}`]).length); }
     function updateProgressBar(total, completed) { const pct = total ? Math.round((completed/total)*100) : 0; document.getElementById('month-label').textContent = currentMonth; document.getElementById('month-pct').textContent = `${pct}%`; document.getElementById('month-bar').style.width = `${pct}%`; }
-    async function togglePlanDay(key) { if(!currentUserId){showToast('⏳ Conectando...');return;} const newVal = !planProgress[key]; planProgress[key]=newVal; updateCheckmarks(); calculateTotalProgress(); try { await setDoc(doc(db,"users",currentUserId,"planProgress","data"), {[key]:newVal}, {merge:true}); showToast(newVal?'✅ Marcado!':'↩️ Desmarcado'); } catch(e){console.error(e); showToast('❌ Erro ao salvar.'); planProgress[key]=!newVal; updateCheckmarks(); } }
+    async function togglePlanDay(key) { if(!currentUserId){showToast('⏳ Conectando...');return;} const newVal = !planProgress[key]; planProgress[key]=newVal; updateCheckmarks(); calculateTotalProgress(); updateChart(); try { await setDoc(doc(db,"users",currentUserId,"planProgress","data"), {[key]:newVal}, {merge:true}); showToast(newVal?'✅ Marcado!':'↩️ Desmarcado'); } catch(e){console.error(e); showToast('❌ Erro ao salvar.'); planProgress[key]=!newVal; updateCheckmarks(); } }
 
-    function calculateTotalProgress() {
-      let totalDays = 0, completedDays = 0;
-      Object.values(PLAN_DATA).forEach(month => { totalDays += month.length; });
-      const completed = Object.keys(planProgress).filter(k => planProgress[k]).length;
-      const pct = Math.round((completed / 365) * 100);
-      document.getElementById('total-progress-val').textContent = `${pct}%`;
-    }
-
+    // 📊 STATS, CHART, EXPORT, REMINDER
+    function calculateTotalProgress() { const completed = Object.keys(planProgress).filter(k => planProgress[k]).length; document.getElementById('total-progress-val').textContent = `${Math.round((completed / 365) * 100)}%`; }
     function loadStatsAndGoals() {
       onSnapshot(doc(db, "users", currentUserId, "settings", "goals"), (snap) => {
-        if(snap.exists()) {
-          const data = snap.data();
-          weeklyGoal = data.weekly || 7;
-          document.getElementById('weekly-goal-input').value = weeklyGoal;
-          updateWeekProgress(data.weekCount || 0);
-        } else {
-          updateWeekProgress(0);
-        }
+        if(snap.exists()) { weeklyGoal = snap.data().weekly || 7; document.getElementById('weekly-goal-input').value = weeklyGoal; updateWeekProgress(snap.data().weekCount || 0); } else { updateWeekProgress(0); }
       });
-      const today = new Date();
-      const todayKey = `${getMonthName(today.getMonth())}-${today.getDate()}`;
-      const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1);
-      const yestKey = `${getMonthName(yesterday.getMonth())}-${yesterday.getDate()}`;
-      let streak = 0;
-      if(planProgress[todayKey] || planProgress[yestKey]) streak = 1;
-      document.getElementById('streak-val').textContent = streak;
+      const today = new Date(); const todayKey = `${getMonthName(today.getMonth())}-${today.getDate()}`; const yesterday = new Date(today); yesterday.setDate(yesterday.getDate()-1); const yestKey = `${getMonthName(yesterday.getMonth())}-${yesterday.getDate()}`;
+      document.getElementById('streak-val').textContent = (planProgress[todayKey] || planProgress[yestKey]) ? 1 : 0;
       document.getElementById('total-readings-val').textContent = freeReadings.length;
     }
-
     function getMonthName(idx) { return ["JANEIRO","FEVEREIRO","MARÇO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"][idx]; }
+    window.saveGoal = async () => { const val = parseInt(document.getElementById('weekly-goal-input').value) || 7; await setDoc(doc(db, "users", currentUserId, "settings", "goals"), { weekly: val }, { merge: true }); showToast('🎯 Meta atualizada!'); };
+    function updateWeekProgress(count) { const pct = Math.min(100, Math.round((count / weeklyGoal) * 100)); document.getElementById('week-pct').textContent = `${count}/${weeklyGoal}`; document.getElementById('week-bar').style.width = `${pct}%`; }
 
-    window.saveGoal = async () => {
-      const val = parseInt(document.getElementById('weekly-goal-input').value) || 7;
-      await setDoc(doc(db, "users", currentUserId, "settings", "goals"), { weekly: val }, { merge: true });
-      showToast('🎯 Meta atualizada!');
-    };
-
-    function updateWeekProgress(count) {
-      const pct = Math.min(100, Math.round((count / weeklyGoal) * 100));
-      document.getElementById('week-pct').textContent = `${count}/${weeklyGoal}`;
-      document.getElementById('week-bar').style.width = `${pct}%`;
+    function updateChart() {
+      const months = Object.keys(PLAN_DATA);
+      const data = months.map(m => {
+        const total = PLAN_DATA[m].length;
+        const done = PLAN_DATA[m].filter(d => planProgress[`${m}-${d.dia}`]).length;
+        return total ? Math.round((done/total)*100) : 0;
+      });
+      const ctx = document.getElementById('progress-chart');
+      if(!ctx) return;
+      if(progressChart) progressChart.destroy();
+      progressChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: months.map(m=>m.substring(0,3)), datasets: [{ label: 'Progresso %', data: data, backgroundColor: 'rgba(16,185,129,0.7)', borderRadius: 6 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(148,163,184,0.1)' } }, x: { grid: { display: false } } } }
+      });
     }
 
+    window.exportData = () => {
+      if(!currentUserId) { showToast('⚠️ Faça login para exportar'); return; }
+      let txt = `📖 RELATÓRIO DE LEITURA BÍBLICA\nGerado em: ${new Date().toLocaleString('pt-BR')}\n${'='.repeat(40)}\n\n`;
+      txt += `📚 LEITURAS REGISTRADAS (${freeReadings.length}):\n`;
+      freeReadings.forEach(r => txt += `- ${r.book} ${r.chapter ? 'Cap. '+r.chapter : ''} ${r.verses ? 'Vs. '+r.verses : ''} | ${formatDate(r.date)}\n`);
+      txt += `\n📝 ANOTAÇÕES PESSOAIS (${userNotes.length}):\n`;
+      userNotes.forEach(n => txt += `- [${formatDate(n.date)}] ${n.reference ? n.reference+': ' : ''}${n.text}\n`);
+      const blob = new Blob([txt], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `leitura-biblica-${new Date().toISOString().split('T')[0]}.txt`; a.click();
+      URL.revokeObjectURL(url);
+      showToast('📤 Exportado com sucesso!');
+    };
+
+    window.toggleReminder = async () => {
+      if(!("Notification" in window)) { showToast('⚠️ Navegador não suporta notificações'); return; }
+      if(Notification.permission === "default") { const perm = await Notification.requestPermission(); if(perm !== "granted") { showToast('⚠️ Permissão negada'); return; } }
+      if(reminderActive) { clearInterval(reminderInterval); reminderActive = false; document.getElementById('reminder-btn').textContent = '🔔 Ativar Lembrete'; showToast('🔕 Lembretes desativados'); return; }
+      reminderActive = true;
+      document.getElementById('reminder-btn').textContent = '🔕 Desativar Lembrete';
+      showToast('🔔 Lembretes ativados! Verifique diariamente às 08:00.');
+      const check = () => { const now = new Date(); if(now.getHours()===8 && now.getMinutes()===0) new Notification("📖 Hora da Leitura!", { body: "Que tal ler um capítulo hoje?", icon: "icons/icon-192.png" }); };
+      reminderInterval = setInterval(check, 60000); check();
+    };
+
+    // 📖 LEITURA LIVRE
     function loadFreeReadings() { if(!currentUserId)return; const q=query(collection(db,"users/"+currentUserId+"/readings"),orderBy("date","desc")); onSnapshot(q,(snap)=>{ freeReadings=snap.docs.map(d=>({id:d.id,...d.data()})); renderFreeReadings(); renderFreeSummary(); loadStatsAndGoals(); },(err)=>console.error("Erro:",err)); }
     function renderFreeReadings() { const container=document.getElementById('free-container'); if(!container)return; if(freeReadings.length===0){container.innerHTML='<p style="text-align:center;color:var(--text-muted);">Nenhuma leitura registrada.</p>';return;} container.innerHTML=freeReadings.map(r=>`<div class="free-card"><div class="free-info"><h4>${r.book}</h4><p>📖 Cap. ${r.chapter??r.chapters} ${r.verses?`• Vs. ${r.verses}`:''} | 📅 ${formatDate(r.date)}</p></div><button class="icon-btn delete" onclick="deleteFree('${r.id}')">🗑️</button></div>`).join(''); }
     function renderFreeSummary() { const container = document.getElementById('free-summary'); if (!container) return; if (!freeReadings || freeReadings.length === 0) { container.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Nenhuma leitura registrada ainda.</p>'; return; } const byBook = {}; freeReadings.forEach(r => { if (!r.book || !r.date) return; const bookKey = r.book.trim().toLowerCase(); const current = byBook[bookKey]; const dateCurrent = new Date(r.date); const dateLast = current ? new Date(current.date) : new Date(0); if (!current || dateCurrent > dateLast) byBook[bookKey] = r; }); const sorted = Object.values(byBook).sort((a, b) => new Date(b.date) - new Date(a.date)); if (sorted.length === 0) { container.innerHTML = '<p style="text-align:center;color:var(--text-muted);font-size:0.85rem;">Nenhuma leitura válida encontrada.</p>'; return; } container.innerHTML = sorted.map(r => { let lastCh = r.chapter; if (lastCh === undefined && r.chapters) { const match = String(r.chapters).match(/^\d+/); lastCh = match ? parseInt(match[0]) : 1; } if (lastCh === undefined || isNaN(lastCh)) lastCh = 1; const nextCh = lastCh + 1; const safeBook = r.book.replace(/'/g, "\\'"); const versesText = r.verses ? `• Vs. ${r.verses}` : (r.chapters && !r.chapter ? `• ${r.chapters}` : ''); return `<div class="free-card" style="margin-bottom:6px;"><div class="free-info"><h4 style="font-size:0.95rem;">${r.book}</h4><p style="font-size:0.8rem;">📖 Parou no Cap. ${lastCh} ${versesText} | 📅 ${formatDate(r.date)}</p></div><button class="icon-btn" style="background:var(--primary);color:white;font-weight:600;" onclick="window.continueReading('${safeBook}', ${nextCh})" title="Continuar leitura">➡️</button></div>`; }).join(''); }
@@ -300,34 +325,36 @@
 
     // 📝 ANOTAÇÕES INLINE
     document.getElementById('quick-note-date').value = new Date().toISOString().split('T')[0];
-    
-    window.saveQuickNote = async () => {
-      const text = document.getElementById('quick-note-text').value.trim();
-      if(!text) { showToast('⚠️ Escreva algo antes de salvar!'); return; }
-      await addDoc(collection(db, `users/${currentUserId}/notes`), {
-        date: document.getElementById('quick-note-date').value,
-        reference: document.getElementById('quick-note-ref').value.trim(),
-        text: text,
-        createdAt: serverTimestamp()
-      });
-      clearQuickNote();
-      showToast('📝 Anotação salva!');
-    };
-
-    window.clearQuickNote = () => {
-      document.getElementById('quick-note-text').value = '';
-      document.getElementById('quick-note-ref').value = '';
-      document.getElementById('quick-note-date').value = new Date().toISOString().split('T')[0];
-    };
-
+    window.saveQuickNote = async () => { const text = document.getElementById('quick-note-text').value.trim(); if(!text) { showToast('⚠️ Escreva algo antes de salvar!'); return; } await addDoc(collection(db, `users/${currentUserId}/notes`), { date: document.getElementById('quick-note-date').value, reference: document.getElementById('quick-note-ref').value.trim(), text: text, createdAt: serverTimestamp() }); clearQuickNote(); showToast('📝 Anotação salva!'); };
+    window.clearQuickNote = () => { document.getElementById('quick-note-text').value = ''; document.getElementById('quick-note-ref').value = ''; document.getElementById('quick-note-date').value = new Date().toISOString().split('T')[0]; };
     function loadNotes() { if(!currentUserId)return; const q=query(collection(db,`users/${currentUserId}/notes`),orderBy('createdAt','desc')); onSnapshot(q,(snap)=>{ userNotes=snap.docs.map(d=>({id:d.id,...d.data()})); renderNotes(); },(err)=>console.error("Erro notas:",err)); }
     function renderNotes() { const container=document.getElementById('notes-container'); if(!container)return; if(userNotes.length===0){container.innerHTML='<p style="text-align:center;color:var(--text-muted);">Nenhuma anotação registrada ainda.</p>';return;} container.innerHTML=userNotes.map(n=>`<div class="free-card" style="flex-direction:column;align-items:flex-start;gap:6px;"><div style="display:flex;justify-content:space-between;width:100%;align-items:center;"><strong style="font-size:0.9rem;">📅 ${formatDate(n.date)} ${n.reference?`• ${n.reference}`:''}</strong><button class="icon-btn delete" onclick="deleteNote('${n.id}')" title="Excluir">🗑️</button></div><p style="font-size:0.85rem;color:var(--text-muted);white-space:pre-wrap;">${escapeHtml(n.text)}</p></div>`).join(''); }
     window.deleteNote = async (id) => { if(confirm('Excluir anotação?')){await deleteDoc(doc(db,`users/${currentUserId}/notes/${id}`)); showToast('🗑️ Removida'); } };
 
+    // ❓ MODAL WIKI
+    window.openWikiModal = () => { document.getElementById('wiki-modal').classList.add('open'); };
+    window.closeWikiModal = () => { document.getElementById('wiki-modal').classList.remove('open'); };
+    document.getElementById('wiki-modal').onclick = (e) => { if(e.target===e.currentTarget) closeWikiModal(); };
+    document.addEventListener('keydown', (e) => { if(e.key==='Escape') closeWikiModal(); });
+
+    // 🌙 TEMA MANUAL
+    function applyTheme() {
+      const saved = localStorage.getItem('theme');
+      const isDark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      document.getElementById('theme-toggle').textContent = isDark ? '☀️' : '🌙';
+    }
+    document.getElementById('theme-toggle').onclick = () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      document.getElementById('theme-toggle').textContent = next === 'dark' ? '☀️' : '🌙';
+    };
+
     // 📱 PWA
     if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('./service-worker.js').then(()=>console.log('✅ PWA ativo')).catch(err=>console.error('Erro SW:',err));});}
 
-    // 🚀 INICIALIZAR
     initApp();
   </script>
 </body>
