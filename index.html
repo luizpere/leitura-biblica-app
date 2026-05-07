@@ -233,34 +233,54 @@
     // ✅ TOAST GLOBAL
     window.showToast = (msg) => { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); };
 
-    // 🔐 AUTH
-    window.toggleAuth = async () => {
-      if (currentUserId && auth.currentUser && auth.currentUser.providerId !== 'anonymous') {
-        await signOut(auth);
-      } else {
-        try {
-          await signInWithPopup(auth, provider);
-          showToast('✅ Login realizado! Dados sincronizados.');
-        } catch (e) {
-          console.error(e);
-          showToast('❌ Erro no login');
-        }
-      }
-    };
+// 🔐 AUTH CORRIGIDO (SINCRONIZAÇÃO GOOGLE)
+let isGoogleUser = false;
 
-    onAuthStateChanged(auth, async (user) => {
-      try {
-        if (user) {
-          currentUserId = user.uid;
-          document.getElementById('user-id').textContent = user.isAnonymous ? `Anônimo: ${user.uid.substring(0, 6)}...` : `👤 ${user.displayName || 'Usuário'}`;
-          document.getElementById('auth-btn').textContent = user.isAnonymous ? '🔑 Entrar' : '🚪 Sair';
-          document.getElementById('auth-btn').classList.add('visible');
-          loadPlanProgress(); loadFreeReadings(); loadNotes(); loadStatsAndGoals();
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (error) { console.error("❌ Erro Auth:", error.code, error.message); }
-    });
+window.toggleAuth = async () => {
+  const btn = document.getElementById('auth-btn');
+  if (isGoogleUser && auth.currentUser) {
+    try { await signOut(auth); showToast('👋 Desconectado'); }
+    catch (e) { showToast('❌ Erro ao sair'); }
+    return;
+  }
+  try {
+    showToast('🔄 Conectando ao Google...');
+    const result = await signInWithPopup(auth, provider);
+    isGoogleUser = true;
+    showToast(`✅ Bem-vindo, ${result.user.displayName || 'Usuário'}!`);
+  } catch (error) {
+    console.error("Erro Google:", error.code, error.message);
+    if (error.code === 'auth/popup-closed-by-user') showToast('⚠️ Login cancelado');
+    else if (error.code === 'auth/unauthorized-domain') showToast('❌ Domínio não autorizado. Verifique Firebase.');
+    else showToast(`❌ Erro: ${error.message}`);
+  }
+};
+
+onAuthStateChanged(auth, (user) => {
+  const userIdEl = document.getElementById('user-id');
+  const authBtn = document.getElementById('auth-btn');
+  if (user) {
+    currentUserId = user.uid;
+    isGoogleUser = !user.isAnonymous;
+    if (user.isAnonymous) {
+      userIdEl.textContent = `👤 Convidado`;
+      authBtn.textContent = '🔑 Entrar com Google';
+    } else {
+      userIdEl.textContent = `👤 ${user.displayName || user.email || 'Usuário'}`;
+      authBtn.textContent = '🚪 Sair';
+    }
+    authBtn.classList.add('visible');
+    loadPlanProgress(); loadFreeReadings(); loadNotes(); loadStatsAndGoals();
+  } else {
+    currentUserId = null; isGoogleUser = false;
+    userIdEl.textContent = `👤 Convidado`;
+    authBtn.textContent = '🔑 Entrar com Google';
+    authBtn.classList.add('visible');
+    signInAnonymously(auth).catch(err => console.error("Erro anon:", err));
+  }
+});
+
+// function initApp() { ... }  ← (NÃO APAGUE ESSA LINHA)
 
     function initApp() { setupMonthSelector(); renderPlan(); applyTheme(); }
     
