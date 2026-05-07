@@ -11,13 +11,19 @@
     * { box-sizing:border-box; margin:0; padding:0; font-family:system-ui,-apple-system,sans-serif; }
     body { background:var(--bg); color:var(--text); min-height:100vh; padding:16px; transition:background 0.3s, color 0.3s; }
     .container { max-width:600px; margin:0 auto; }
-    header { text-align:center; margin-bottom:20px; position:relative; }
-    h1 { font-size:1.6rem; margin-bottom:6px; background:linear-gradient(135deg,var(--primary),#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-    #user-id { font-size:0.75rem; color:var(--text-muted); background:var(--card); padding:3px 8px; border-radius:20px; display:inline-block; }
     
-    .header-actions { position:absolute; top:0; right:0; display:flex; gap:8px; }
+    /* HEADER CORRIGIDO */
+    header { text-align:center; margin-bottom:20px; display:flex; flex-direction:column; align-items:center; }
+    .header-actions { width:100%; display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+    .header-icons { display:flex; gap:8px; }
     .icon-btn { width:34px; height:34px; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.1); color:var(--text); transition:0.2s; font-size:1rem; }
     .icon-btn:hover { background:var(--primary); color:white; }
+    
+    .auth-btn { padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:0.8rem; cursor:pointer; display:none; align-items:center; gap:4px; }
+    .auth-btn.visible { display:inline-flex; }
+    
+    h1 { font-size:1.5rem; margin-bottom:6px; background:linear-gradient(135deg,var(--primary),#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1.2; }
+    #user-id { font-size:0.75rem; color:var(--text-muted); background:var(--card); padding:3px 8px; border-radius:20px; display:inline-block; margin-top:4px; }
     
     .tabs { display:flex; gap:8px; margin-bottom:16px; overflow-x:auto; padding-bottom:4px; }
     .tab-btn { flex:1; white-space:nowrap; padding:10px; border:1px solid var(--border); border-radius:var(--radius); background:transparent; color:var(--text-muted); cursor:pointer; font-weight:600; transition:0.2s; min-width:100px; }
@@ -87,14 +93,15 @@
   <div class="toast" id="toast"></div>
   <div class="container">
     <header>
-      <h1>📖 Minha Leitura Bíblica</h1>
       <div class="header-actions">
-        <button class="icon-btn" id="theme-toggle" title="Alternar tema">🌙</button>
-        <button class="icon-btn" onclick="openWikiModal()" title="Como usar">❓</button>
+        <button id="auth-btn" class="auth-btn" onclick="toggleAuth()">🔑 Entrar</button>
+        <div class="header-icons">
+          <button class="icon-btn" id="theme-toggle" title="Alternar tema">🌙</button>
+          <button class="icon-btn" onclick="openWikiModal()" title="Como usar">❓</button>
+        </div>
       </div>
-      <div style="margin-top:8px;">
-        <div id="user-id">Conectando...</div>
-      </div>
+      <h1>📖 Minha Leitura Bíblica</h1>
+      <div id="user-id">Conectando...</div>
     </header>
     
     <div class="tabs">
@@ -184,14 +191,14 @@
       <h4 style="margin:12px 0 6px;font-size:0.95rem;">📅 Plano Oficial</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Siga a leitura bíblica cronológica anual</li><li>Clique no <strong>✓</strong> para marcar o dia concluído</li><li>Use a <strong>🔍 Busca</strong> para filtrar rapidamente</li></ul>
       <h4 style="margin:12px 0 6px;font-size:0.95rem;">📖 Leitura Livre</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Registre leituras fora do plano, no seu ritmo</li><li>O resumo <strong>📍 Onde parei?</strong> mostra seu último capítulo</li><li>Clique em <strong>➡️</strong> para continuar de onde parou</li></ul>
       <h4 style="margin:12px 0 6px;font-size:0.95rem;">📝 Anotações</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Editor visível na aba Notas</li><li>Salve reflexões, orações e insights</li></ul>
-      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📊 Estatísticas & Extras</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Gráfico mensal, metas semanais e exportação TXT</li><li>🌙 Alternância manual de tema</li><li>🔔 Lembretes diários via navegador</li><li>Login anônimo automático (sem cadastro)</li></ul>
+      <h4 style="margin:12px 0 6px;font-size:0.95rem;">📊 Estatísticas & Extras</h4><ul style="margin-left:16px;font-size:0.85rem;color:var(--text-muted);line-height:1.5;"><li>Gráfico mensal, metas semanais e exportação TXT</li><li>🌙 Alternância manual de tema</li><li>🔔 Lembretes diários via navegador</li><li>🔑 <strong>Login necessário</strong> para sincronizar entre celular e PC</li></ul>
     </div><div class="modal-actions" style="margin-top:16px;"><button class="btn" onclick="closeWikiModal()">Entendi, obrigado!</button></div></div>
   </div>
 
   <!-- JAVASCRIPT ÚNICO -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInAnonymously, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, deleteDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     console.log("✅ Script carregado com sucesso!");
@@ -201,6 +208,7 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
     let currentUserId = null, planProgress = {}, freeReadings = [], userNotes = [], currentMonth = "JANEIRO", weeklyGoal = 7, reminderActive = false, reminderInterval = null;
     let progressChart = null;
@@ -224,17 +232,34 @@
     function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
     window.showToast = (msg) => { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); };
 
-    // 🔐 AUTH (ANÔNIMO)
+    // 🔐 AUTH (GOOGLE OU ANÔNIMO)
+    window.toggleAuth = async () => {
+      if (currentUserId) {
+        await signOut(auth);
+      } else {
+        try {
+          await signInWithPopup(auth, provider);
+          showToast('✅ Login realizado! Dados sincronizados.');
+        } catch (e) {
+          console.error(e);
+          showToast('❌ Erro no login');
+        }
+      }
+    };
+
     onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {
           currentUserId = user.uid;
-          document.getElementById('user-id').textContent = `ID: ${user.uid.substring(0, 6)}...`;
+          document.getElementById('user-id').textContent = `👤 ${user.displayName || 'Usuário'}`;
+          document.getElementById('auth-btn').textContent = '🚪 Sair';
+          document.getElementById('auth-btn').classList.add('visible');
           loadPlanProgress(); loadFreeReadings(); loadNotes(); loadStatsAndGoals();
         } else {
+          // Fallback para anônimo se não houver login
           await signInAnonymously(auth);
         }
-      } catch (error) { console.error("❌ Erro Auth:", error.code, error.message); document.getElementById('user-id').textContent = `Erro: ${error.code}`; showToast(`🔐 ${error.message}`); }
+      } catch (error) { console.error("❌ Erro Auth:", error.code, error.message); }
     });
 
     function initApp() { setupMonthSelector(); renderPlan(); applyTheme(); }
@@ -282,7 +307,7 @@
       if(progressChart) progressChart.destroy();
       progressChart = new Chart(ctx, {
         type: 'bar',
-        data: { labels: months.map(m=>m.substring(0,3)), datasets: [{ label: 'Progresso %', data: data, backgroundColor: 'rgba(16,185,129,0.7)', borderRadius: 6 }] },
+         { labels: months.map(m=>m.substring(0,3)), datasets: [{ label: 'Progresso %', data: data, backgroundColor: 'rgba(16,185,129,0.7)', borderRadius: 6 }] },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: 'rgba(148,163,184,0.1)' } }, x: { grid: { display: false } } } }
       });
     }
